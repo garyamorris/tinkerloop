@@ -4,7 +4,7 @@ Initial local verification: **15 October 2026**, macOS, Node.js 24.14.0.
 
 ## Automated checks
 
-`npm run check` runs strict typechecking, the Node test suite, and a TypeScript
+`npm run check` runs strict typechecking, 31 Node tests, and a TypeScript
 build. The suite covers history, sequential tool execution, call/result pairing,
 denials, malformed arguments, provider failures, incomplete replies, request
 limits, cancellation, path escapes, symlinks, bounded output, command failures,
@@ -19,6 +19,9 @@ server. No credentials or live calls are used by the automated suite.
 The [CI workflow](../.github/workflows/ci.yml) runs on Ubuntu, macOS, and Windows
 with Node 24. Check the [current CI results](https://github.com/garyamorris/tinkerloop/actions/workflows/ci.yml)
 for the status of the published revision.
+
+The [first published CI run](https://github.com/garyamorris/tinkerloop/actions/runs/38654329560)
+passed all checks on all three operating systems.
 
 ## Live API and terminal checks
 
