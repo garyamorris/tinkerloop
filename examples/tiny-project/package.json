@@ -1,0 +1,6 @@
+{
+  "name": "tinkerloop-practice",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test sum.test.js" }
+}

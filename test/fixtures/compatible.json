@@ -1,0 +1,12 @@
+[
+  {
+    "choices": [{
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant", "content": null, "reasoning_content": "opaque-provider-metadata",
+        "tool_calls": [{ "id": "call_1", "type": "function", "function": { "name": "read_file", "arguments": "{\"path\":\"README.md\"}" } }]
+      }
+    }]
+  },
+  { "choices": [{ "finish_reason": "stop", "message": { "role": "assistant", "content": "A tiny harness." } }] }
+]

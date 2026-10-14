@@ -1,0 +1,39 @@
+{
+  "name": "tinkerloop",
+  "version": "0.1.0",
+  "description": "A tiny coding harness, explained from the ground up.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Gary Morris",
+  "repository": "github:garyamorris/tinkerloop",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "tinkerloop": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "check": "npm run typecheck && npm test && npm run build",
+    "lesson:1": "tsx lessons/01-model-call/index.ts",
+    "lesson:2": "tsx lessons/02-conversation/index.ts",
+    "lesson:3": "tsx lessons/03-one-tool/index.ts",
+    "lesson:4": "tsx lessons/04-the-loop/index.ts",
+    "lesson:5": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
