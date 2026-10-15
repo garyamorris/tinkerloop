@@ -7,7 +7,7 @@
 
 Build your own coding agent by understanding the pieces: a model connection,
 conversation history, tools, an execution loop, and a terminal interface.
-Tinkerloop is a working TypeScript CLI and a sequence of five runnable lessons.
+Tinkerloop is a working TypeScript CLI and a sequence of eight runnable lessons.
 It assumes basic TypeScript knowledge and no previous agent-building experience.
 
 There is no agent framework and there are **zero runtime dependencies**. Model
@@ -64,7 +64,8 @@ npm run dev -- "Read README.md and explain this project in three sentences."
 # Start a conversation. /usage and /context inspect it; /exit quits.
 npm run dev
 
-# Try a real coding task in the deliberately broken practice project.
+# Try a real coding task in a deliberately broken practice project.
+# See examples/README.md for harder ones, including a prompt-injection exercise.
 npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run npm test."
 
 # Prefer a normal scrolling terminal transcript?
@@ -89,7 +90,10 @@ project with sensitive data.
 | [2. Conversation history](lessons/02-conversation/README.md) | Remember an earlier exchange | `npm run lesson:2` |
 | [3. One tool round trip](lessons/03-one-tool/README.md) | Let the model request a local file read | `npm run lesson:3` |
 | [4. The execution loop](lessons/04-the-loop/README.md) | Repeat until the model answers | `npm run lesson:4` |
-| [5. The complete CLI](lessons/05-the-cli/README.md) | Approvals, edits, commands, and chat | `npm run lesson:5` |
+| [5. Approvals](lessons/05-approvals/README.md) | Let the model propose file writes you approve | `npm run lesson:5` |
+| [6. Commands](lessons/06-commands/README.md) | Run tests so the model can check its work | `npm run lesson:6` |
+| [7. Chat](lessons/07-chat/README.md) | Wrap the loop in a conversation | `npm run lesson:7` |
+| [8. The complete CLI](lessons/08-the-cli/README.md) | Cancellation, errors, and telemetry | `npm run lesson:8` |
 
 You can pass the same options to every lesson:
 
@@ -157,7 +161,7 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 `.env.local` is loaded from the **launch directory**, not the `--cwd` target.
 Full-screen mode uses an alternate terminal screen and restores it on exit.
 Use PgUp/PgDn to scroll, and up/down to recall previous input. A quoted task
-and lessons 1–4 wait for Enter after finishing, so you can review the result.
+and lessons 1–6 wait for Enter after finishing, so you can review the result.
 `--plain` uses a scrolling transcript and exits immediately after a quoted task.
 Without a terminal, configure settings and pass a task; there are no setup
 questions, and writes and commands are denied.
@@ -184,6 +188,7 @@ not report that token metric, rather than zero usage.
 | [`src/screen.ts`](src/screen.ts) | Optional full-screen view and keyboard input, using native Node APIs |
 | [`src/display.ts`](src/display.ts), [`src/render.ts`](src/render.ts), [`src/usage.ts`](src/usage.ts) | Terminal presentation and provider-independent token accounting |
 | [`lessons/`](lessons/) | Runnable stages with explanations and exercises |
+| [`examples/`](examples/README.md) | Practice projects with deliberate bugs, plus a prompt-injection exercise |
 
 Next steps: [add a tool or connector](docs/extending.md),
 [troubleshoot setup](docs/troubleshooting.md), or [contribute](CONTRIBUTING.md).
@@ -197,7 +202,7 @@ npm run check
 This typechecks the application, lessons, and tests; runs tests; and builds the
 CLI. Tests use synthetic HTTP responses and temporary workspaces, so they need
 no API keys and spend no model tokens. CI runs the checks on macOS, Linux, and
-Windows. The practice project's intentionally failing tests are separate.
+Windows. The practice projects' intentionally failing tests are separate.
 
 The first version keeps conversations in memory. It does not include streaming,
 saved sessions, context compaction, MCP, or background jobs. The goal is code you

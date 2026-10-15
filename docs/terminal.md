@@ -86,7 +86,7 @@ one line. The view retains up to 5,000 transcript lines; this does not truncate
 the separate conversation array sent to the model. Full-screen mode needs at
 least 30 columns and 12 rows. Resize freely, or use `--plain` in a small terminal.
 
-Chat stays open after each turn. A quoted task or lessons 1–4 wait for Enter
+Chat stays open after each turn. A quoted task or lessons 1–6 wait for Enter
 after completing, so the answer remains visible. `--plain` exits immediately
 after these one-shot runs; use it when you want output in your terminal scrollback.
 
@@ -154,8 +154,9 @@ automatically compact the conversation.
 | `/clear` | Clear history and its last usage snapshot; retain session totals |
 | `/exit` | Quit |
 
-These commands belong to the full CLI (lesson 5). Lessons 1–4 use the same
-presentation and telemetry around their own explicit model calls.
+These commands belong to the full CLI (lesson 8). Lesson 7 has only `/clear`
+and `/exit`; the other lessons use the same presentation and telemetry around
+their own explicit model calls.
 
 ## Colors and pipes
 

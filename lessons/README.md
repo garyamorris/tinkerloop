@@ -9,8 +9,10 @@ a real model shows you how well a model handles it.
 
 Run `npm run lesson:1` to begin. In a terminal, missing provider/model settings
 open guided setup; full-screen mode can also accept a hidden session API key.
-Lessons 1–4 keep the result on screen until you press Enter. Use PgUp/PgDn to
-review it, or add `-- --plain` for an ordinary scrolling transcript.
+Lessons 1–6 keep the result on screen until you press Enter. Use PgUp/PgDn to
+review it, or add `-- --plain` for an ordinary scrolling transcript. Lessons 5–7
+can change files, so they work in [`examples/tiny-project`](../examples/tiny-project/README.md)
+unless you pass `--cwd`.
 
 Read these shared pieces first:
 
@@ -38,7 +40,10 @@ adapter when you're ready. No hidden agent runner drives the lessons.
 | [2](02-conversation/README.md) | Explicit history | [index.ts](02-conversation/index.ts) |
 | [3](03-one-tool/README.md) | Local tool execution and result | [index.ts](03-one-tool/index.ts) |
 | [4](04-the-loop/README.md) | A bounded loop | [index.ts](04-the-loop/index.ts) |
-| [5](05-the-cli/README.md) | Complete CLI with human approval | [src/main.ts](../src/main.ts) |
+| [5](05-approvals/README.md) | File writes with human approval | [index.ts](05-approvals/index.ts) |
+| [6](06-commands/README.md) | Commands as evidence; the loop as a function | [index.ts](06-commands/index.ts) |
+| [7](07-chat/README.md) | A conversation around the loop | [index.ts](07-chat/index.ts) |
+| [8](08-the-cli/README.md) | The complete CLI | [src/main.ts](../src/main.ts) |
 
 Imports end in `.js` because those are the filenames Node uses after `tsc` builds
 the app. During development, `tsx` resolves the same imports to the TypeScript

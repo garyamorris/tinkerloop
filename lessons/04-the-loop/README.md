@@ -22,4 +22,4 @@ the limit. That means the task is unfinished, not that the harness succeeded.
 Follow each mutation of `messages` to see exactly why a subsequent request is
 needed.
 
-Next: [the complete CLI](../05-the-cli/README.md).
+Next: [ask before changing anything](../05-approvals/README.md).
