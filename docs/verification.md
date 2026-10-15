@@ -4,14 +4,17 @@ Initial local verification: **15 October 2026**, macOS, Node.js 24.14.0.
 
 ## Automated checks
 
-`npm run check` runs strict typechecking, 59 Node tests, and a TypeScript
+`npm run check` runs strict typechecking, 68 Node tests, and a TypeScript
 build. The suite covers history, sequential tool execution, call/result pairing,
 denials, malformed arguments, provider failures, incomplete replies, request
 limits, cancellation, path escapes, symlinks, bounded output, command failures,
 command timeouts, configuration, non-terminal approvals, provider token
 accounting, context percentages, partial reporting, terminal control handling,
 clean redirected output, guided setup, hidden session keys, bracketed paste,
-default-deny full-screen approvals, resize, and terminal mode restoration.
+default-deny full-screen approvals, resize, terminal mode restoration, the
+transcript left in scrollback, per-turn Ctrl+C cancellation, provider-key
+removal from command environments, trace files, and the human provider's reply
+parsing and full tool round trip.
 
 All four connectors have synthetic HTTP round-trip fixtures under
 [`test/fixtures`](../test/fixtures/). Tests check preservation of opaque reasoning
@@ -47,3 +50,22 @@ local environment and were not written to the repository.
 
 The compiled CLI's help and local package installation were also checked. The
 project is published on GitHub, not on the npm registry.
+
+## Lesson split, tracing, and the human provider
+
+Checked on 15 October 2026 on Linux with Node.js 22, by driving the real
+programs through a pseudo-terminal with `--provider human`:
+
+| Capability | Verification |
+| --- | --- |
+| Lesson 3 | Typed `read_file` request executed; the next request showed the result under its call ID |
+| Lesson 5 | First write denied and returned as an error result; second write approved, and the practice tests then passed |
+| Lesson 6 | Approved `npm test` returned exit code 1 and the failing output to the "model" |
+| Lesson 7 | Defaulted to the practice project; a follow-up turn carried earlier history; `/clear` reset it |
+| Full-screen chat | Ctrl+C cancelled a turn and the chat continued; tool use, answer, and `/exit` worked |
+| Practice projects | `word-count` needs both fixes to pass; `injection-demo` passes once `greet.js` is fixed |
+
+These changes were not checked against live provider APIs, because no
+credentials were available: the Anthropic `cache_control` request field, the
+16,000-token output cap, and the five-minute request timeout. Fixtures confirm
+the request bodies; confirm behavior with a real key before relying on it.

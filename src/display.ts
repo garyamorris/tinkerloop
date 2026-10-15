@@ -43,6 +43,10 @@ export const chatHelp = `Chat commands
   /exit     Quit
 `;
 
+function traceNote(folder: string): string {
+  return `Tracing · request and response bodies go to ${folder}`;
+}
+
 function toolTarget(call: ToolCall): string {
   if (!call.arguments || typeof call.arguments !== "object") return "";
   const args = call.arguments as Record<string, unknown>;
@@ -55,7 +59,10 @@ function toolTarget(call: ToolCall): string {
 // Presentation observes the harness. It never owns the agent loop or tools.
 // Separate stdout/stderr options also let tests inspect real output behavior.
 export function createDisplay(
-  config: Pick<Config, "provider" | "model" | "cwd" | "contextWindow">,
+  config: Pick<
+    Config,
+    "provider" | "model" | "cwd" | "contextWindow" | "trace"
+  >,
   options: {
     stdout?: Output;
     stderr?: Output;
@@ -136,6 +143,7 @@ export function createDisplay(
 
   return {
     prompt: styled ? `\n${accent("  you › ")}` : "\nYou > ",
+    modelPrompt: styled ? `\n${accent("  model › ")}` : "\nModel > ",
     approvalPrompt: styled
       ? `${accent("  Allow this action?")} [y/N] `
       : "Allow this action? [y/N] ",
@@ -158,6 +166,7 @@ export function createDisplay(
             ? "Follow the lesson below. Token usage appears in the footer."
             : "Describe a task to get started. /help lists chat commands.",
         );
+        if (config.trace) this.note(traceNote(config.trace));
         screen.write("\n");
         updateFooter();
         return;
@@ -168,6 +177,7 @@ export function createDisplay(
       status("A tiny coding harness, explained from the ground up.");
       status(`${config.provider} · ${config.model}`);
       status(workspace);
+      if (config.trace) status(traceNote(config.trace));
       status(
         title
           ? "Token usage follows each response · --help for options"
@@ -211,7 +221,7 @@ export function createDisplay(
       status(
         `tokens · ${usageLine(reply.usage)} · ${((performance.now() - requestStarted) / 1000).toFixed(1)}s${reply.stopReason === "incomplete" ? " · incomplete" : ""}`,
       );
-      if (!reply.usage)
+      if (!reply.usage && config.provider !== "human")
         status("Token usage was not reported by this provider.");
     },
     tool(call: ToolCall): void {
@@ -261,6 +271,16 @@ export function createDisplay(
       for (const line of literalText(preview).split("\n"))
         stderr.write(`  ${line}\n`);
       stderr.write("\n");
+    },
+    // Verbatim text, such as what the human provider receives. Indentation
+    // matters here, so this skips the wrapping and Markdown used elsewhere.
+    block(text: string): void {
+      stderr.write(
+        `\n${cleanText(text)
+          .split("\n")
+          .map((line) => `  ${line}`)
+          .join("\n")}\n`,
+      );
     },
     note(text: string): void {
       for (const line of cleanText(text).split("\n"))

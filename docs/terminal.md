@@ -3,8 +3,9 @@
 Tinkerloop opens a full-screen terminal by default when stdin, stdout, and stderr
 are terminals. A fixed header identifies your provider, model, and workspace;
 the middle holds a scrollable transcript; the footer shows usage and context
-above your input line. It restores your previous terminal screen on exit.
-Pass `--plain` for a normal scrolling transcript. Both views use native Node
+above your input line. On exit it restores your previous terminal screen, then
+prints the transcript so you can scroll back through it. Pass `--plain` for a
+normal scrolling transcript instead. Both views use native Node
 APIs and ANSI sequences, with no UI framework or runtime dependency.
 
 The CLI and all lessons share a branded header, user/assistant sections, readable
@@ -44,7 +45,9 @@ bounded result, which can be longer than the terminal preview.
 ## Guided startup and keys
 
 Run `npm run dev` or `npm run lesson:1` without flags. Missing settings open a
-provider selector and model-ID prompt. Up/down or a number highlights a provider;
+provider selector and model-ID prompt. The last choice, "You", needs no model ID
+or key: you type the model's replies, and the status line says when it is your
+turn as the model. Up/down or a number highlights a provider;
 Enter confirms. The model prompt accepts a free-form API identifier. For OpenAI,
 Enter accepts the shown `gpt-5.4-mini` suggestion; you can type a different model.
 Check the [provider catalogs](providers.md) for identifiers your account supports.
@@ -73,7 +76,8 @@ with instructions when configuration is missing.
 | PgUp/PgDn | Scroll the transcript or a long approval proposal |
 | `y` during approval | Approve that one action |
 | `n` or Enter during approval | Deny that action |
-| Ctrl+C | Cancel and exit, restoring the terminal |
+| Ctrl+C during a chat turn | Stop that turn and keep the conversation |
+| Ctrl+C at the prompt, or twice | Exit, restoring the terminal |
 | Ctrl+D on empty chat input | Exit |
 
 Terminals with bracketed paste support can paste multiple lines without
@@ -83,9 +87,10 @@ one line. The view retains up to 5,000 transcript lines; this does not truncate
 the separate conversation array sent to the model. Full-screen mode needs at
 least 30 columns and 12 rows. Resize freely, or use `--plain` in a small terminal.
 
-Chat stays open after each turn. A quoted task or lessons 1–4 wait for Enter
-after completing, so the answer remains visible. `--plain` exits immediately
-after these one-shot runs; use it when you want output in your terminal scrollback.
+Chat stays open after each turn. A quoted task or lessons 1–6 wait for Enter
+after completing, so you can review the answer with PgUp/PgDn. `--plain` exits
+immediately after these one-shot runs. Either way, the transcript ends up in
+your terminal's scrollback.
 
 ## Token counts
 
@@ -114,9 +119,11 @@ The request counter includes attempted requests, so reporting gaps stay visible.
 
 Repeated history is counted on every request. Session input totals therefore
 grow faster than the current context size. Clearing context does not undo API
-usage. These counts are telemetry, not a billing statement. Caching remains
-controlled by your provider and request configuration; this display does not
-add a separate cache or enable paid cache writes automatically.
+usage. These counts are telemetry, not a billing statement. OpenAI and Gemini
+cache repeated prefixes automatically. Anthropic caches only when asked, so its
+adapter requests caching: a cache write costs a little more than ordinary input,
+and each later read of that prefix costs much less. In an agent loop the next
+step almost always reads it.
 
 Sources: [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching),
 [Anthropic cache accounting](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),
@@ -149,10 +156,11 @@ automatically compact the conversation.
 | `/clear` | Clear history and its last usage snapshot; retain session totals |
 | `/exit` | Quit |
 
-These commands belong to the full CLI (lesson 5). Lessons 1–4 use the same
-presentation and telemetry around their own explicit model calls.
+These commands belong to the full CLI (lesson 8). Lesson 7 has only `/clear`
+and `/exit`; the other lessons use the same presentation and telemetry around
+their own explicit model calls.
 
-## Colors and pipes
+## Colors, pipes, and exit codes
 
 Formatting is enabled when stdout and stderr are terminals. Set `NO_COLOR` to
 disable colors while keeping the full-screen layout. `--plain` or `TERM=dumb`
@@ -160,6 +168,12 @@ uses a scrolling view. When stdout is redirected, it contains the model's origin
 without labels or usage counters; status and summaries use stderr. Terminal
 control sequences from model output are stripped. In approval previews, hidden
 control characters are shown as escapes so proposed contents remain visible.
+
+Without a terminal on stdin, pass a quoted task and configure the provider,
+model, and key ahead of time. There are no setup questions, chat is unavailable,
+and every write and command is denied because nobody can approve it. Exit
+codes are `0` for a completed run or normal chat exit, `1` for an error or an
+unfinished single task, and `130` for Ctrl+C cancellation.
 
 The display observes callbacks from the agent loop; it does not decide which
 tools can run. [`screen.ts`](../src/screen.ts) handles the alternate terminal

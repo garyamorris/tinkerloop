@@ -2,6 +2,7 @@
 
 | Symptom | What to check |
 | --- | --- |
+| No API key, or want to learn without spending money | Run with `--provider human` and type the model's replies yourself. |
 | Node syntax or engine error | Run `node --version`; use Node 24 or later. |
 | Setup appears every run | Answers are session-only. Set `TINKERLOOP_PROVIDER`, `TINKERLOOP_MODEL`, and your key in the environment or ignored `.env.local` to skip questions. |
 | No full-screen view | It needs terminal stdin, stdout, and stderr, without `--plain` or `TERM=dumb`. Pipes use ordinary output. |
@@ -14,6 +15,7 @@
 | HTTP 404 | Check the model ID; for compatible servers, check the base URL and supported API route. |
 | HTTP 429 | Check provider rate limits, quota, and billing. Tinkerloop does not retry automatically. |
 | “fetch failed” | Check network access, proxy/firewall settings, DNS, and endpoint availability. |
+| Unsure what the model received | Rerun with `--trace traces` and open the numbered request and response files. |
 | Incomplete response | The model hit an output limit or returned a nonfinal status. Try a smaller task or inspect the provider's limits. Partial tool requests are not executed. |
 | Request limit reached | The turn used all allowed model requests. Inspect what happened; continue in chat or increase `--max-steps` deliberately. |
 | Context-window error | `/clear` starts fresh. There is no automatic compaction or silent message dropping. |

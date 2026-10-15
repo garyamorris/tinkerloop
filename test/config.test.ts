@@ -20,6 +20,11 @@ test("flags override environment, task words join, and sensible defaults apply",
   assert.equal(config.maxSteps, 3);
   assert.equal(config.prompt, "fix this");
   assert.equal(readConfig([], env)!.maxSteps, 10);
+  assert.equal(readConfig([], env)!.trace, undefined);
+  assert.equal(
+    readConfig(["--trace", "traces"], env)!.trace,
+    resolve("traces"),
+  );
 });
 
 test("help needs no key or model and invalid configuration fails clearly", () => {
@@ -59,6 +64,17 @@ test("context limits are optional, validated, and overridden by flags", () => {
       /positive whole/,
     );
   }
+});
+
+test("the human provider needs no key and ignores a configured model ID", () => {
+  const config = readConfig(["--provider", "human"], {
+    TINKERLOOP_MODEL: "some-real-model",
+    OPENAI_API_KEY: "test-key",
+  })!;
+  assert.equal(config.provider, "human");
+  assert.equal(config.model, "you");
+  assert.equal(config.apiKey, "");
+  assert.equal(readConfig(["--provider", "human"], {})!.apiKey, "");
 });
 
 test("native provider credentials never become compatible endpoint credentials", () => {

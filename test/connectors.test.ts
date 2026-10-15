@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { createAnthropicConnector } from "../src/connectors/anthropic.js";
 import { createCompatibleConnector } from "../src/connectors/compatible.js";
 import { createGeminiConnector } from "../src/connectors/gemini.js";
 import { createOpenAIConnector } from "../src/connectors/openai.js";
 import { array, object, postJson, type Fetch } from "../src/connectors/http.js";
+import { traceFetch } from "../src/connectors/trace.js";
 import { readOnlyTools } from "../src/tools.js";
 import type { Message, ModelConnector, ModelReply } from "../src/types.js";
 
 // These synthetic HTTP fixtures exercise protocol shape, not model intelligence.
-// They are test doubles only; the application has no simulated model mode.
+// They are test doubles; the only offline mode is --provider human, where you
+// type the model's replies yourself (see human.test.ts).
 function httpFixture(replies: unknown[]) {
   const requests: {
     url: string;
@@ -107,7 +111,11 @@ test("Anthropic groups all tool results and retains signed content blocks", asyn
     http.requests[0]!.headers.get("anthropic-version"),
     "2023-06-01",
   );
-  assert.equal(http.requests[0]!.body.max_tokens, 8192);
+  assert.equal(http.requests[0]!.body.max_tokens, 16_000);
+  // Anthropic caches only on request; the loop resends the same prefix each step.
+  assert.deepEqual(http.requests[0]!.body.cache_control, {
+    type: "ephemeral",
+  });
   const history = array(http.requests[1]!.body.messages).map(object);
   assert.equal(history.length, 3);
   assert.equal(
@@ -275,4 +283,38 @@ test("request cancellation reaches HTTP fetch", async () => {
   });
   controller.abort();
   await assert.rejects(pending, /aborted HTTP/);
+});
+
+test("tracing saves each exact request and response body, but no credentials", async (t) => {
+  const folder = await mkdtemp(join(tmpdir(), "tinkerloop-trace-"));
+  t.after(() => rm(folder, { recursive: true, force: true }));
+  const responses = await fixture("openai");
+  const original = structuredClone(responses);
+  const http = httpFixture(responses);
+  await roundTrip(
+    createOpenAIConnector(
+      "test-openai-key",
+      "test-model",
+      traceFetch(folder, http.fetchImpl),
+    ),
+  );
+  const runs = await readdir(folder);
+  assert.equal(runs.length, 1);
+  const run = join(folder, runs[0]!);
+  const files = (await readdir(run)).sort();
+  assert.deepEqual(files, [
+    "001-request.json",
+    "001-response.json",
+    "002-request.json",
+    "002-response.json",
+  ]);
+  const saved = (name: string) =>
+    readFile(join(run, name), "utf8").then((text) => JSON.parse(text));
+  assert.deepEqual(await saved("002-request.json"), http.requests[1]!.body);
+  assert.deepEqual(await saved("001-response.json"), original[0]);
+  for (const name of files)
+    assert.doesNotMatch(
+      await readFile(join(run, name), "utf8"),
+      /test-openai-key/,
+    );
 });

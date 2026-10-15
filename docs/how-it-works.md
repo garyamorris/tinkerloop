@@ -22,6 +22,12 @@ interface ModelConnector {
 `ModelRequest` contains instructions, messages, tool descriptions, and an abort
 signal. `ModelReply` contains an assistant message and a stop reason. The
 connectors expose the actual HTTP bodies; no SDK owns the execution loop.
+Run with `--trace <dir>` to save each body the connector sends and receives as
+numbered JSON files. [`trace.ts`](../src/connectors/trace.ts) does this by
+wrapping `fetch`, so the connectors themselves do not change.
+The [human connector](../src/connectors/human.ts) implements the same interface
+by showing you the request and returning what you type, which makes the point
+plainly: the loop only needs something that turns a request into a reply.
 An optional `usage` field carries token counts separately from conversation
 messages. [`usage.ts`](../src/usage.ts) normalizes provider accounting; missing
 metrics remain unknown.
@@ -96,8 +102,11 @@ handles tool calls. A task passed as an argument runs one turn. Full-screen mode
 waits for Enter before exiting so the answer stays visible; `--plain` exits
 immediately after the turn.
 
-Ctrl+C aborts HTTP requests and active commands, then returns exit code 130.
-The model request timeout is two minutes. Shell commands have a 30-second limit;
+In chat, Ctrl+C stops the current turn: it aborts the HTTP request or command,
+records a result for every requested tool, and returns to the prompt with the
+conversation intact. Ctrl+C at the prompt, a second Ctrl+C, or Ctrl+C during a
+quoted single task exits with code 130.
+The model request timeout is five minutes. Shell commands have a 30-second limit;
 their process trees are terminated on timeout or cancellation. Background jobs,
 interactive subprocesses, and persistent terminal sessions are outside this
 small implementation.

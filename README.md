@@ -7,7 +7,7 @@
 
 Build your own coding agent by understanding the pieces: a model connection,
 conversation history, tools, an execution loop, and a terminal interface.
-Tinkerloop is a working TypeScript CLI and a sequence of five runnable lessons.
+Tinkerloop is a working TypeScript CLI and a sequence of eight runnable lessons.
 It assumes basic TypeScript knowledge and no previous agent-building experience.
 
 There is no agent framework and there are **zero runtime dependencies**. Model
@@ -24,6 +24,11 @@ shows tool activity, and asks before changes. `/usage` shows session totals;
 You need **Node.js 24+**, npm, and access to a tool-capable model. Real API calls
 may cost money. Every lesson supports OpenAI, Anthropic, Gemini, and a configurable
 OpenAI-compatible endpoint. See [provider setup](docs/providers.md).
+
+**No API key yet?** Add `--provider human` to any lesson or the CLI and *you* play
+the model. Each request shows exactly what an API would receive, and you type
+the reply: an answer, or a tool request such as `read_file {"path": "sum.js"}`.
+It is free, works offline, and is the fastest way to feel what the harness does.
 
 ```sh
 git clone https://github.com/garyamorris/tinkerloop.git
@@ -59,11 +64,15 @@ npm run dev -- "Read README.md and explain this project in three sentences."
 # Start a conversation. /usage and /context inspect it; /exit quits.
 npm run dev
 
-# Try a real coding task in the deliberately broken practice project.
+# Try a real coding task in a deliberately broken practice project.
+# See examples/README.md for harder ones, including a prompt-injection exercise.
 npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run npm test."
 
 # Prefer a normal scrolling terminal transcript?
 npm run dev -- --plain
+
+# Save the exact JSON sent to and received from the model, one file per request.
+npm run dev -- --trace traces "Read package.json and summarize it."
 ```
 
 **Review each proposed edit and command before typing `y`.** Reads happen
@@ -81,7 +90,10 @@ project with sensitive data.
 | [2. Conversation history](lessons/02-conversation/README.md) | Remember an earlier exchange | `npm run lesson:2` |
 | [3. One tool round trip](lessons/03-one-tool/README.md) | Let the model request a local file read | `npm run lesson:3` |
 | [4. The execution loop](lessons/04-the-loop/README.md) | Repeat until the model answers | `npm run lesson:4` |
-| [5. The complete CLI](lessons/05-the-cli/README.md) | Approvals, edits, commands, and chat | `npm run lesson:5` |
+| [5. Approvals](lessons/05-approvals/README.md) | Let the model propose file writes you approve | `npm run lesson:5` |
+| [6. Commands](lessons/06-commands/README.md) | Run tests so the model can check its work | `npm run lesson:6` |
+| [7. Chat](lessons/07-chat/README.md) | Wrap the loop in a conversation | `npm run lesson:7` |
+| [8. The complete CLI](lessons/08-the-cli/README.md) | Cancellation, errors, and telemetry | `npm run lesson:8` |
 
 You can pass the same options to every lesson:
 
@@ -137,36 +149,28 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 
 | Option | Purpose | Default |
 | --- | --- | --- |
-| `--provider` | `openai`, `anthropic`, `gemini`, or `compatible` | Environment, then prompt; scripts default to `openai` |
+| `--provider` | `openai`, `anthropic`, `gemini`, `compatible`, or `human` (you type the replies) | Environment, then prompt; scripts default to `openai` |
 | `--model` | Provider's model ID | Environment, then prompt; required for scripts |
 | `--cwd` | Directory for local tools | Launch directory |
 | `--max-steps` | Maximum model requests per user turn | `10` |
 | `--context-window` | Optional model token limit, to show a context percentage | `TINKERLOOP_CONTEXT_WINDOW`; otherwise unset |
+| `--trace` | Folder for numbered request/response bodies (no headers or keys) | Off |
 | `--plain` | Use a scrolling transcript | Full-screen in a capable terminal |
 | `--help` | Show help without an API key | — |
 
 `.env.local` is loaded from the **launch directory**, not the `--cwd` target.
-Full-screen mode uses an alternate terminal screen and restores it on exit.
-Use PgUp/PgDn to scroll, and up/down to recall previous input. A quoted task
-and lessons 1–4 wait for Enter after finishing, so you can review the result.
-`--plain` uses a scrolling transcript and exits immediately after a quoted task.
-Without a terminal, configure settings and pass a task; there are no setup
-questions, and writes and commands are denied.
-Exit codes: `0` for a completed run or normal chat exit, `1` for an error or
-incomplete single-task run, and `130` for Ctrl+C cancellation.
-
-Interactive terminals format basic Markdown and wrap prose to their width.
-`NO_COLOR` disables colors; `TERM=dumb` uses the scrolling view. Redirected stdout
-stays plain model text; branding, progress, and usage stay on stderr. `/clear` forgets the conversation
-while retaining usage totals for this process. A dash means the provider did
-not report that token metric, rather than zero usage.
+In chat, Ctrl+C stops the current turn and keeps the conversation; at the
+prompt it quits. Without a terminal, pass a task and configure settings ahead of
+time: there are no setup questions, and writes and commands are denied. The
+[terminal guide](docs/terminal.md) covers keys, scrolling, colors, pipes, exit
+codes, and what each token counter means.
 
 ## Find your way around
 
 | Code | Responsibility |
 | --- | --- |
 | [`src/types.ts`](src/types.ts) | Shared messages, requests, and tool contracts |
-| [`src/connectors/`](src/connectors/) | Explicit HTTP requests and response translation |
+| [`src/connectors/`](src/connectors/) | Explicit HTTP requests and response translation; [`human.ts`](src/connectors/human.ts) lets you play the model; [`trace.ts`](src/connectors/trace.ts) saves request bodies |
 | [`src/agent.ts`](src/agent.ts) | The model/tool loop |
 | [`src/tools.ts`](src/tools.ts), [`src/command.ts`](src/command.ts) | Local file and shell tools |
 | [`src/main.ts`](src/main.ts), [`src/terminal.ts`](src/terminal.ts) | Chat and human approvals |
@@ -174,6 +178,7 @@ not report that token metric, rather than zero usage.
 | [`src/screen.ts`](src/screen.ts) | Optional full-screen view and keyboard input, using native Node APIs |
 | [`src/display.ts`](src/display.ts), [`src/render.ts`](src/render.ts), [`src/usage.ts`](src/usage.ts) | Terminal presentation and provider-independent token accounting |
 | [`lessons/`](lessons/) | Runnable stages with explanations and exercises |
+| [`examples/`](examples/README.md) | Practice projects with deliberate bugs, plus a prompt-injection exercise |
 
 Next steps: [add a tool or connector](docs/extending.md),
 [troubleshoot setup](docs/troubleshooting.md), or [contribute](CONTRIBUTING.md).
@@ -187,7 +192,7 @@ npm run check
 This typechecks the application, lessons, and tests; runs tests; and builds the
 CLI. Tests use synthetic HTTP responses and temporary workspaces, so they need
 no API keys and spend no model tokens. CI runs the checks on macOS, Linux, and
-Windows. The practice project's intentionally failing tests are separate.
+Windows. The practice projects' intentionally failing tests are separate.
 
 The first version keeps conversations in memory. It does not include streaming,
 saved sessions, context compaction, MCP, or background jobs. The goal is code you

@@ -10,10 +10,34 @@ import { createScreen, supportsScreen, type Screen } from "./screen.js";
 import { executeTool, tools, workspaceRoot } from "./tools.js";
 import type { Message } from "./types.js";
 
+// Ctrl+C during a chat turn stops only that turn, so the conversation survives.
+// At the prompt, or pressed again while a turn is stopping, it ends the session.
+export function createInterrupts() {
+  const session = new AbortController();
+  let turn: AbortController | undefined;
+  return {
+    session: session.signal,
+    cancel(): void {
+      if (turn && !turn.signal.aborted) turn.abort(new Error("Cancelled."));
+      else session.abort(new Error("Cancelled."));
+    },
+    startTurn(): AbortSignal {
+      turn = new AbortController();
+      return AbortSignal.any([session.signal, turn.signal]);
+    },
+    // Reports whether Ctrl+C stopped the turn that just ended.
+    endTurn(): boolean {
+      const stopped = Boolean(turn?.signal.aborted);
+      turn = undefined;
+      return stopped;
+    },
+  };
+}
+
 export async function main(args = process.argv.slice(2)): Promise<number> {
-  const controller = new AbortController();
-  const cancel = () => controller.abort(new Error("Cancelled."));
-  process.once("SIGINT", cancel);
+  const interrupts = createInterrupts();
+  const { cancel, session } = interrupts;
+  process.on("SIGINT", cancel);
   let terminal: ReturnType<typeof createTerminal> | undefined;
   let screen: Screen | undefined;
   let sessionKey = "";
@@ -29,7 +53,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
     terminal = createTerminal(cancel, undefined, screen);
     const config = await configure(
       args,
-      controller.signal,
+      session,
       terminal.interactive ? terminal : undefined,
     );
     if (!config) {
@@ -44,7 +68,19 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
       throw new Error(
         "Chat needs a terminal. Pass a quoted task to run a single turn.",
       );
-    const connector = createConnector(config);
+    const input = terminal;
+    const modelTurn = "You are the model · type an answer or a tool request";
+    // With --provider human, the "model" is you, typing in this terminal.
+    const connector = createConnector(
+      config,
+      input.interactive
+        ? {
+            show: (text) => display.block(text),
+            read: (signal) =>
+              input.read(display.modelPrompt, signal ?? session, modelTurn),
+          }
+        : undefined,
+    );
     const messages: Message[] = [];
     const systemPrompt = `You are a small coding assistant. Work on the user's task using the provided local tools.
 Working directory: ${config.cwd}
@@ -57,7 +93,7 @@ Never claim an action succeeded unless its tool result supports that claim.`;
 
     display.banner();
     let prompt =
-      config.prompt || (await terminal.read(display.prompt, controller.signal));
+      config.prompt || (await terminal.read(display.prompt, session));
     while (prompt !== undefined) {
       prompt = prompt.trim();
       if (prompt === "/exit") break;
@@ -78,6 +114,8 @@ Never claim an action succeeded unless its tool result supports that claim.`;
         display.note("Unknown command. Type /help for chat commands.");
       } else if (prompt) {
         messages.push({ role: "user", content: prompt });
+        // A quoted task is a single turn, so there Ctrl+C simply exits.
+        const signal = config.prompt ? session : interrupts.startTurn();
         try {
           const status = await runAgent({
             connector,
@@ -85,13 +123,12 @@ Never claim an action succeeded unless its tool result supports that claim.`;
             messages,
             tools,
             maxSteps: config.maxSteps,
-            signal: controller.signal,
+            signal,
             execute: (call) =>
               executeTool(call, {
                 cwd: config.cwd,
-                signal: controller.signal,
-                approve: (preview) =>
-                  terminal!.approve(preview, controller.signal),
+                signal,
+                approve: (preview) => terminal!.approve(preview, signal),
               }),
             onRequest: (step) =>
               display.request(step, config.maxSteps, messages),
@@ -109,28 +146,38 @@ Never claim an action succeeded unless its tool result supports that claim.`;
             if (config.prompt) exitCode = 1;
           }
         } catch (error) {
-          if (controller.signal.aborted) throw error;
-          display.note(`Error: ${errorMessage(error, sessionKey)}`);
-          display.note(
-            "Check the provider, model, and credentials. /clear resets the conversation.",
-          );
-          if (config.prompt) exitCode = 1;
+          if (session.aborted) throw error;
+          if (interrupts.endTurn()) {
+            // runAgent paired every requested tool with a result, so history
+            // is still valid to send. The next message continues from here.
+            display.note(
+              "Turn cancelled. Send another message to continue, or /clear to start over.",
+            );
+          } else {
+            display.note(`Error: ${errorMessage(error, sessionKey)}`);
+            display.note(
+              "Check the provider, model, and credentials. /clear resets the conversation.",
+            );
+            if (config.prompt) exitCode = 1;
+          }
+        } finally {
+          interrupts.endTurn();
         }
         display.finish(messages, tools.length);
       }
       if (config.prompt) break;
-      prompt = await terminal.read(display.prompt, controller.signal);
+      prompt = await terminal.read(display.prompt, session);
     }
     if (screen && config.prompt)
       await screen.wait(
         "Task finished · PgUp/PgDn to review · Enter to exit",
-        controller.signal,
+        session,
       );
     return exitCode;
   } catch (error) {
     // Restore the normal terminal before showing a fatal startup or cancellation error.
     screen?.close();
-    if (controller.signal.aborted) {
+    if (session.aborted) {
       process.stderr.write("Cancelled.\n");
       return 130;
     }

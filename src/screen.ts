@@ -14,7 +14,8 @@ export function supportsScreen(plain = false): boolean {
 }
 
 // The screen is just a view and a small input editor. It never calls a model.
-// Full-screen mode uses the alternate terminal buffer, restored by close().
+// Full-screen mode uses the alternate terminal buffer. close() restores the
+// previous screen, then prints the transcript so it stays in your scrollback.
 interface InputPrompt {
   kind: "chat" | "wait" | "text" | "secret" | "choice" | "approval";
   title: string;
@@ -462,8 +463,8 @@ export function createScreen(
       status = cleanText(value);
       schedule();
     },
-    read(signal: AbortSignal): Promise<string> {
-      status = "Ready";
+    read(signal: AbortSignal, label = "Ready"): Promise<string> {
+      status = cleanText(label);
       return ask("chat", "You", "", signal);
     },
     wait(message: string, signal: AbortSignal): Promise<string> {
@@ -523,6 +524,10 @@ export function createScreen(
       input.setRawMode(Boolean(previousRaw));
       input.pause();
       output.write("\x1b[?2004l\x1b[0m\x1b[?25h\x1b[?1049l");
+      // Leaving the alternate screen discards it, so copy the transcript into
+      // the normal terminal. You can scroll back through it after exiting.
+      const lines = pendingText ? [...transcript, pendingText] : transcript;
+      if (lines.length) output.write(lines.join("\n") + "\x1b[0m\n");
     },
   };
 }

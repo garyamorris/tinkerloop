@@ -1,6 +1,9 @@
 import {
+  keyNames,
   parseOptions,
+  providers,
   readConfig,
+  type ApiProvider,
   type Config,
   type Provider,
 } from "./config.js";
@@ -21,14 +24,6 @@ export interface SetupPrompts {
   ): Promise<string>;
 }
 
-const providers: Provider[] = ["openai", "anthropic", "gemini", "compatible"];
-export const keyNames: Record<Provider, string> = {
-  openai: "OPENAI_API_KEY",
-  anthropic: "ANTHROPIC_API_KEY",
-  gemini: "GEMINI_API_KEY",
-  compatible: "OPENAI_COMPATIBLE_API_KEY",
-};
-
 export async function configure(
   args: string[],
   signal: AbortSignal,
@@ -48,6 +43,7 @@ export async function configure(
         "Anthropic · Messages API",
         "Gemini · Interactions API",
         "OpenAI-compatible · local or hosted endpoint",
+        "You · play the model yourself (offline, no key)",
       ],
       signal,
     );
@@ -56,9 +52,11 @@ export async function configure(
   }
   if (!providers.includes(provider as Provider)) {
     throw new Error(
-      `Unknown provider "${provider}". Choose openai, anthropic, gemini, or compatible.`,
+      `Unknown provider "${provider}". Choose openai, anthropic, gemini, compatible, or human.`,
     );
   }
+  // You are the model, so there is no model ID, endpoint, or key to ask for.
+  if (provider === "human") return readConfig(args, settings);
   async function required(
     title: string,
     description: string,
@@ -91,7 +89,7 @@ export async function configure(
       "Enter the API prefix, including /v1 when needed. HTTPS or local HTTP only.\nFor example: http://localhost:11434/v1",
     );
   }
-  const keyName = keyNames[provider as Provider];
+  const keyName = keyNames[provider as ApiProvider];
   if (!settings[keyName]?.trim()) {
     if (provider === "compatible") {
       settings[keyName] = (

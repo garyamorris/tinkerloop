@@ -1,12 +1,18 @@
 # The lesson path
 
 Run lessons from the repository root after following the [quickstart](../README.md).
-All examples call a real model. There is no offline model mode.
+Each lesson calls a real model, or you can be the model: add `-- --provider human`
+and type the replies yourself. You will see exactly what a model receives on
+every request, including the history and tool definitions sent again each time.
+Try a lesson both ways. Playing the model shows you what the harness does;
+a real model shows you how well a model handles it.
 
 Run `npm run lesson:1` to begin. In a terminal, missing provider/model settings
 open guided setup; full-screen mode can also accept a hidden session API key.
-Lessons 1–4 keep the result on screen until you press Enter. Use PgUp/PgDn to
-review it, or add `-- --plain` for an ordinary scrolling transcript.
+Lessons 1–6 keep the result on screen until you press Enter. Use PgUp/PgDn to
+review it, or add `-- --plain` for an ordinary scrolling transcript. Lessons 5–7
+can change files, so they work in [`examples/tiny-project`](../examples/tiny-project/README.md)
+unless you pass `--cwd`.
 
 Read these shared pieces first:
 
@@ -34,7 +40,10 @@ adapter when you're ready. No hidden agent runner drives the lessons.
 | [2](02-conversation/README.md) | Explicit history | [index.ts](02-conversation/index.ts) |
 | [3](03-one-tool/README.md) | Local tool execution and result | [index.ts](03-one-tool/index.ts) |
 | [4](04-the-loop/README.md) | A bounded loop | [index.ts](04-the-loop/index.ts) |
-| [5](05-the-cli/README.md) | Complete CLI with human approval | [src/main.ts](../src/main.ts) |
+| [5](05-approvals/README.md) | File writes with human approval | [index.ts](05-approvals/index.ts) |
+| [6](06-commands/README.md) | Commands as evidence; the loop as a function | [index.ts](06-commands/index.ts) |
+| [7](07-chat/README.md) | A conversation around the loop | [index.ts](07-chat/index.ts) |
+| [8](08-the-cli/README.md) | The complete CLI | [src/main.ts](../src/main.ts) |
 
 Imports end in `.js` because those are the filenames Node uses after `tsc` builds
 the app. During development, `tsx` resolves the same imports to the TypeScript
@@ -42,4 +51,7 @@ source. An `interface` describes data; it does not validate JSON at runtime.
 That is why the tool executor still checks model-generated arguments.
 
 **Checkpoint:** before moving to the next lesson, trace the messages sent on each
-API request. Ask yourself which code runs locally and which data reaches the model.
+API request. Add `-- --trace traces` to any lesson to save every request and
+response body as numbered JSON files, then open them side by side: watch history
+grow, and notice that the tool definitions are resent every time. Ask yourself
+which code runs locally and which data reaches the model.

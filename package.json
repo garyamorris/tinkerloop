@@ -29,7 +29,10 @@
     "lesson:2": "tsx lessons/02-conversation/index.ts",
     "lesson:3": "tsx lessons/03-one-tool/index.ts",
     "lesson:4": "tsx lessons/04-the-loop/index.ts",
-    "lesson:5": "tsx src/cli.ts"
+    "lesson:5": "tsx lessons/05-approvals/index.ts",
+    "lesson:6": "tsx lessons/06-commands/index.ts",
+    "lesson:7": "tsx lessons/07-chat/index.ts",
+    "lesson:8": "tsx src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
