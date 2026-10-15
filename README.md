@@ -149,7 +149,7 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 
 | Option | Purpose | Default |
 | --- | --- | --- |
-| `--provider` | `openai`, `anthropic`, `gemini`, or `compatible` | Environment, then prompt; scripts default to `openai` |
+| `--provider` | `openai`, `anthropic`, `gemini`, `compatible`, or `human` (you type the replies) | Environment, then prompt; scripts default to `openai` |
 | `--model` | Provider's model ID | Environment, then prompt; required for scripts |
 | `--cwd` | Directory for local tools | Launch directory |
 | `--max-steps` | Maximum model requests per user turn | `10` |
@@ -159,28 +159,18 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 | `--help` | Show help without an API key | — |
 
 `.env.local` is loaded from the **launch directory**, not the `--cwd` target.
-Full-screen mode uses an alternate terminal screen and restores it on exit.
-Use PgUp/PgDn to scroll, and up/down to recall previous input. A quoted task
-and lessons 1–6 wait for Enter after finishing, so you can review the result.
-`--plain` uses a scrolling transcript and exits immediately after a quoted task.
-Without a terminal, configure settings and pass a task; there are no setup
-questions, and writes and commands are denied.
 In chat, Ctrl+C stops the current turn and keeps the conversation; at the
-prompt it quits. Exit codes: `0` for a completed run or normal chat exit, `1`
-for an error or incomplete single-task run, and `130` for Ctrl+C cancellation.
-
-Interactive terminals format basic Markdown and wrap prose to their width.
-`NO_COLOR` disables colors; `TERM=dumb` uses the scrolling view. Redirected stdout
-stays plain model text; branding, progress, and usage stay on stderr. `/clear` forgets the conversation
-while retaining usage totals for this process. A dash means the provider did
-not report that token metric, rather than zero usage.
+prompt it quits. Without a terminal, pass a task and configure settings ahead of
+time: there are no setup questions, and writes and commands are denied. The
+[terminal guide](docs/terminal.md) covers keys, scrolling, colors, pipes, exit
+codes, and what each token counter means.
 
 ## Find your way around
 
 | Code | Responsibility |
 | --- | --- |
 | [`src/types.ts`](src/types.ts) | Shared messages, requests, and tool contracts |
-| [`src/connectors/`](src/connectors/) | Explicit HTTP requests and response translation |
+| [`src/connectors/`](src/connectors/) | Explicit HTTP requests and response translation; [`human.ts`](src/connectors/human.ts) lets you play the model; [`trace.ts`](src/connectors/trace.ts) saves request bodies |
 | [`src/agent.ts`](src/agent.ts) | The model/tool loop |
 | [`src/tools.ts`](src/tools.ts), [`src/command.ts`](src/command.ts) | Local file and shell tools |
 | [`src/main.ts`](src/main.ts), [`src/terminal.ts`](src/terminal.ts) | Chat and human approvals |

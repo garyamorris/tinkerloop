@@ -25,7 +25,10 @@ export function createHumanConnector(io: HumanConsole): ModelConnector {
     async complete({ systemPrompt, messages, tools, signal }) {
       signal?.throwIfAborted();
       requests++;
-      const out = [`━━ Request ${requests} · you are the model ━━`, ""];
+      const out = [
+        `━━ You are the model · request ${requests} this session ━━`,
+        "",
+      ];
       // An API has no memory: everything below arrives again on every request.
       const toolText = tools.length ? tools.map(describeTool).join("\n") : "";
       out.push(

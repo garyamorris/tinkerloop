@@ -68,7 +68,7 @@ test("each request shows what an API receives, including resent history", async 
   });
   assert.equal(first.stopReason, "complete");
   assert.equal(first.message.content, "My answer");
-  assert.match(typed.shown[0]!, /Request 1 · you are the model/);
+  assert.match(typed.shown[0]!, /You are the model · request 1 this session/);
   assert.match(typed.shown[0]!, /System prompt:\n {2}Be brief\./);
   assert.match(typed.shown[0]!, /1\. user\n {5}First question/);
   assert.match(typed.shown[1]!, /always replies/); // The empty reply was refused.

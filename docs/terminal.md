@@ -3,8 +3,9 @@
 Tinkerloop opens a full-screen terminal by default when stdin, stdout, and stderr
 are terminals. A fixed header identifies your provider, model, and workspace;
 the middle holds a scrollable transcript; the footer shows usage and context
-above your input line. It restores your previous terminal screen on exit.
-Pass `--plain` for a normal scrolling transcript. Both views use native Node
+above your input line. On exit it restores your previous terminal screen, then
+prints the transcript so you can scroll back through it. Pass `--plain` for a
+normal scrolling transcript instead. Both views use native Node
 APIs and ANSI sequences, with no UI framework or runtime dependency.
 
 The CLI and all lessons share a branded header, user/assistant sections, readable
@@ -87,8 +88,9 @@ the separate conversation array sent to the model. Full-screen mode needs at
 least 30 columns and 12 rows. Resize freely, or use `--plain` in a small terminal.
 
 Chat stays open after each turn. A quoted task or lessons 1–6 wait for Enter
-after completing, so the answer remains visible. `--plain` exits immediately
-after these one-shot runs; use it when you want output in your terminal scrollback.
+after completing, so you can review the answer with PgUp/PgDn. `--plain` exits
+immediately after these one-shot runs. Either way, the transcript ends up in
+your terminal's scrollback.
 
 ## Token counts
 
@@ -158,7 +160,7 @@ These commands belong to the full CLI (lesson 8). Lesson 7 has only `/clear`
 and `/exit`; the other lessons use the same presentation and telemetry around
 their own explicit model calls.
 
-## Colors and pipes
+## Colors, pipes, and exit codes
 
 Formatting is enabled when stdout and stderr are terminals. Set `NO_COLOR` to
 disable colors while keeping the full-screen layout. `--plain` or `TERM=dumb`
@@ -166,6 +168,12 @@ uses a scrolling view. When stdout is redirected, it contains the model's origin
 without labels or usage counters; status and summaries use stderr. Terminal
 control sequences from model output are stripped. In approval previews, hidden
 control characters are shown as escapes so proposed contents remain visible.
+
+Without a terminal on stdin, pass a quoted task and configure the provider,
+model, and key ahead of time. There are no setup questions, chat is unavailable,
+and every write and command is denied because nobody can approve it. Exit
+codes are `0` for a completed run or normal chat exit, `1` for an error or an
+unfinished single task, and `130` for Ctrl+C cancellation.
 
 The display observes callbacks from the agent loop; it does not decide which
 tools can run. [`screen.ts`](../src/screen.ts) handles the alternate terminal
