@@ -7,7 +7,7 @@ function prompts(answers: string[], provider = 0) {
   let selections = 0;
   const ui: SetupPrompts = {
     async choose(_title, choices) {
-      assert.equal(choices.length, 4);
+      assert.equal(choices.length, 5);
       selections++;
       return provider;
     },
@@ -74,6 +74,15 @@ test("compatible setup asks for endpoint and permits an empty API key", async ()
   assert.equal(config?.baseUrl, "http://localhost:11434/v1");
   assert.equal(config?.apiKey, "");
   assert.equal(input.questions[2]?.secret, true);
+});
+
+test("choosing to play the model yourself asks for no model ID or key", async () => {
+  const input = prompts([], 4);
+  const config = await configure([], signal, input.ui, {});
+  assert.equal(config?.provider, "human");
+  assert.equal(config?.model, "you");
+  assert.equal(config?.apiKey, "");
+  assert.deepEqual(input.questions, []);
 });
 
 test("required setup answers retry, and final answers still get URL validation", async () => {

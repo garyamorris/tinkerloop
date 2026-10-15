@@ -25,6 +25,11 @@ You need **Node.js 24+**, npm, and access to a tool-capable model. Real API call
 may cost money. Every lesson supports OpenAI, Anthropic, Gemini, and a configurable
 OpenAI-compatible endpoint. See [provider setup](docs/providers.md).
 
+**No API key yet?** Add `--provider human` to any lesson or the CLI and *you* play
+the model. Each request shows exactly what an API would receive, and you type
+the reply: an answer, or a tool request such as `read_file {"path": "sum.js"}`.
+It is free, works offline, and is the fastest way to feel what the harness does.
+
 ```sh
 git clone https://github.com/garyamorris/tinkerloop.git
 cd tinkerloop

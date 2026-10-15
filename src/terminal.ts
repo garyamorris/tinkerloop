@@ -76,8 +76,9 @@ export function createTerminal(
     async read(
       prompt: string,
       signal: AbortSignal,
+      label?: string,
     ): Promise<string | undefined> {
-      if (screen) return screen.read(signal);
+      if (screen) return screen.read(signal, label);
       if (!reader || closed) return undefined;
       let onClose = () => {};
       const endOfInput = new Promise<undefined>((resolve) => {

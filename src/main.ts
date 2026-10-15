@@ -68,7 +68,19 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
       throw new Error(
         "Chat needs a terminal. Pass a quoted task to run a single turn.",
       );
-    const connector = createConnector(config);
+    const input = terminal;
+    const modelTurn = "You are the model · type an answer or a tool request";
+    // With --provider human, the "model" is you, typing in this terminal.
+    const connector = createConnector(
+      config,
+      input.interactive
+        ? {
+            show: (text) => display.block(text),
+            read: (signal) =>
+              input.read(display.modelPrompt, signal ?? session, modelTurn),
+          }
+        : undefined,
+    );
     const messages: Message[] = [];
     const systemPrompt = `You are a small coding assistant. Work on the user's task using the provided local tools.
 Working directory: ${config.cwd}

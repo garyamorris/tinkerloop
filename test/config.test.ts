@@ -66,6 +66,17 @@ test("context limits are optional, validated, and overridden by flags", () => {
   }
 });
 
+test("the human provider needs no key and ignores a configured model ID", () => {
+  const config = readConfig(["--provider", "human"], {
+    TINKERLOOP_MODEL: "some-real-model",
+    OPENAI_API_KEY: "test-key",
+  })!;
+  assert.equal(config.provider, "human");
+  assert.equal(config.model, "you");
+  assert.equal(config.apiKey, "");
+  assert.equal(readConfig(["--provider", "human"], {})!.apiKey, "");
+});
+
 test("native provider credentials never become compatible endpoint credentials", () => {
   const config = readConfig(["--provider", "compatible"], {
     ...env,

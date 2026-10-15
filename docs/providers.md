@@ -10,6 +10,7 @@ or ignored `.env.local`; never add it to a source file.
 | `anthropic` | Messages | `ANTHROPIC_API_KEY` | [Claude models](https://platform.claude.com/docs/en/about-claude/models/overview) |
 | `gemini` | Interactions | `GEMINI_API_KEY` | [Gemini models](https://ai.google.dev/gemini-api/docs/models) |
 | `compatible` | Chat Completions with function tools | `OPENAI_COMPATIBLE_API_KEY` (optional) | Your server's catalog |
+| `human` | None: you type the replies | None | You |
 
 Set `TINKERLOOP_PROVIDER` and `TINKERLOOP_MODEL` in `.env.local` to avoid typing
 flags. Command-line options take precedence. In a terminal, missing settings
@@ -95,6 +96,30 @@ Remote endpoints require HTTPS; plain HTTP is allowed for `localhost`,
 redirects are rejected. The connector only sends
 `OPENAI_COMPATIBLE_API_KEY`; it never falls back to a native provider's key.
 Check the [adapter](../src/connectors/compatible.ts) against your server's docs.
+
+## You, as the model
+
+```sh
+npm run lesson:3 -- --provider human --cwd examples/tiny-project
+npm run dev -- --provider human --cwd examples/tiny-project
+```
+
+The [human connector](../src/connectors/human.ts) makes no network request. For
+each model request it prints the system prompt, the tool definitions, and the
+message history, marking what is new since your last reply. Type plain text to
+answer, or request a tool by name followed by a JSON object:
+
+```text
+read_file {"path": "sum.js"}
+write_file {"path": "notes.md", "content": "# Notes\nFirst line"}
+```
+
+Put several requests on separate lines; each gets its own call ID. Invalid JSON
+or an unknown tool name still becomes a request, so the executor's error comes
+back to you exactly as it would to a real model. Writes and commands still ask
+for approval, which means you propose a change as the model and then decide
+on it as the user. A terminal is required, no key or model ID is needed, and
+token counts are absent because no model API reported any.
 
 ## Costs, data, and verification
 

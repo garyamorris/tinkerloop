@@ -44,7 +44,9 @@ bounded result, which can be longer than the terminal preview.
 ## Guided startup and keys
 
 Run `npm run dev` or `npm run lesson:1` without flags. Missing settings open a
-provider selector and model-ID prompt. Up/down or a number highlights a provider;
+provider selector and model-ID prompt. The last choice, "You", needs no model ID
+or key: you type the model's replies, and the status line says when it is your
+turn as the model. Up/down or a number highlights a provider;
 Enter confirms. The model prompt accepts a free-form API identifier. For OpenAI,
 Enter accepts the shown `gpt-5.4-mini` suggestion; you can type a different model.
 Check the [provider catalogs](providers.md) for identifiers your account supports.

@@ -143,6 +143,7 @@ export function createDisplay(
 
   return {
     prompt: styled ? `\n${accent("  you › ")}` : "\nYou > ",
+    modelPrompt: styled ? `\n${accent("  model › ")}` : "\nModel > ",
     approvalPrompt: styled
       ? `${accent("  Allow this action?")} [y/N] `
       : "Allow this action? [y/N] ",
@@ -220,7 +221,7 @@ export function createDisplay(
       status(
         `tokens · ${usageLine(reply.usage)} · ${((performance.now() - requestStarted) / 1000).toFixed(1)}s${reply.stopReason === "incomplete" ? " · incomplete" : ""}`,
       );
-      if (!reply.usage)
+      if (!reply.usage && config.provider !== "human")
         status("Token usage was not reported by this provider.");
     },
     tool(call: ToolCall): void {
@@ -270,6 +271,16 @@ export function createDisplay(
       for (const line of literalText(preview).split("\n"))
         stderr.write(`  ${line}\n`);
       stderr.write("\n");
+    },
+    // Verbatim text, such as what the human provider receives. Indentation
+    // matters here, so this skips the wrapping and Markdown used elsewhere.
+    block(text: string): void {
+      stderr.write(
+        `\n${cleanText(text)
+          .split("\n")
+          .map((line) => `  ${line}`)
+          .join("\n")}\n`,
+      );
     },
     note(text: string): void {
       for (const line of cleanText(text).split("\n"))

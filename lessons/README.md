@@ -1,7 +1,11 @@
 # The lesson path
 
 Run lessons from the repository root after following the [quickstart](../README.md).
-All examples call a real model. There is no offline model mode.
+Each lesson calls a real model, or you can be the model: add `-- --provider human`
+and type the replies yourself. You will see exactly what a model receives on
+every request, including the history and tool definitions sent again each time.
+Try a lesson both ways. Playing the model shows you what the harness does;
+a real model shows you how well a model handles it.
 
 Run `npm run lesson:1` to begin. In a terminal, missing provider/model settings
 open guided setup; full-screen mode can also accept a hidden session API key.

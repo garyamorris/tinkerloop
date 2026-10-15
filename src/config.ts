@@ -7,12 +7,15 @@ export const providers = [
   "anthropic",
   "gemini",
   "compatible",
+  "human",
 ] as const;
 export type Provider = (typeof providers)[number];
+// "human" makes no API call: you type the model's replies yourself.
+export type ApiProvider = Exclude<Provider, "human">;
 
 // The one list of credential variables. Shell commands never inherit these,
 // and error messages redact their values, so a new provider only adds a line.
-export const keyNames: Record<Provider, string> = {
+export const keyNames: Record<ApiProvider, string> = {
   openai: "OPENAI_API_KEY",
   anthropic: "ANTHROPIC_API_KEY",
   gemini: "GEMINI_API_KEY",
@@ -39,7 +42,8 @@ Usage: tinkerloop [options] ["task"]
 No task starts a chat. /help, /usage, /context, /clear, /exit.
 In a terminal, missing provider/model settings are requested during setup.
 
-  --provider <name>  openai, anthropic, gemini, compatible (scripts default to openai)
+  --provider <name>  openai, anthropic, gemini, compatible, or human
+                     (you type the model's replies; scripts default to openai)
   --model <id>       Model ID, or set TINKERLOOP_MODEL (prompted in a terminal)
   --cwd <path>       Working directory (default: current directory)
   --max-steps <n>    Model requests per user turn (default: 10)
@@ -88,17 +92,20 @@ export function readConfig(
     values.provider ?? (env.TINKERLOOP_PROVIDER?.trim() || "openai");
   if (!providers.includes(provider as Provider)) {
     throw new Error(
-      `Unknown provider "${provider}". Choose openai, anthropic, gemini, or compatible.`,
+      `Unknown provider "${provider}". Choose openai, anthropic, gemini, compatible, or human.`,
     );
   }
-  const model = (values.model ?? env.TINKERLOOP_MODEL ?? "").trim();
+  const human = provider === "human";
+  const model = human
+    ? "you"
+    : (values.model ?? env.TINKERLOOP_MODEL ?? "").trim();
   if (!model)
     throw new Error(
       "Choose a model with --model <id> or TINKERLOOP_MODEL. See docs/providers.md.",
     );
-  const keyName = keyNames[provider as Provider];
-  const apiKey = (env[keyName] ?? "").trim();
-  if (!apiKey && provider !== "compatible")
+  const keyName = human ? "" : keyNames[provider as ApiProvider];
+  const apiKey = keyName ? (env[keyName] ?? "").trim() : "";
+  if (!apiKey && !human && provider !== "compatible")
     throw new Error(`Set ${keyName} in your environment or .env.local.`);
   const baseUrl = (env.TINKERLOOP_BASE_URL ?? "").trim();
   if (provider === "compatible") {

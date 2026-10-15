@@ -13,7 +13,8 @@ import { readOnlyTools } from "../src/tools.js";
 import type { Message, ModelConnector, ModelReply } from "../src/types.js";
 
 // These synthetic HTTP fixtures exercise protocol shape, not model intelligence.
-// They are test doubles only; the application has no simulated model mode.
+// They are test doubles; the only offline mode is --provider human, where you
+// type the model's replies yourself (see human.test.ts).
 function httpFixture(replies: unknown[]) {
   const requests: {
     url: string;

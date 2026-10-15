@@ -25,6 +25,9 @@ connectors expose the actual HTTP bodies; no SDK owns the execution loop.
 Run with `--trace <dir>` to save each body the connector sends and receives as
 numbered JSON files. [`trace.ts`](../src/connectors/trace.ts) does this by
 wrapping `fetch`, so the connectors themselves do not change.
+The [human connector](../src/connectors/human.ts) implements the same interface
+by showing you the request and returning what you type, which makes the point
+plainly: the loop only needs something that turns a request into a reply.
 An optional `usage` field carries token counts separately from conversation
 messages. [`usage.ts`](../src/usage.ts) normalizes provider accounting; missing
 metrics remain unknown.

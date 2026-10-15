@@ -2,6 +2,7 @@
 
 | Symptom | What to check |
 | --- | --- |
+| No API key, or want to learn without spending money | Run with `--provider human` and type the model's replies yourself. |
 | Node syntax or engine error | Run `node --version`; use Node 24 or later. |
 | Setup appears every run | Answers are session-only. Set `TINKERLOOP_PROVIDER`, `TINKERLOOP_MODEL`, and your key in the environment or ignored `.env.local` to skip questions. |
 | No full-screen view | It needs terminal stdin, stdout, and stderr, without `--plain` or `TERM=dumb`. Pipes use ordinary output. |

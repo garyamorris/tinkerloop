@@ -462,8 +462,8 @@ export function createScreen(
       status = cleanText(value);
       schedule();
     },
-    read(signal: AbortSignal): Promise<string> {
-      status = "Ready";
+    read(signal: AbortSignal, label = "Ready"): Promise<string> {
+      status = cleanText(label);
       return ask("chat", "You", "", signal);
     },
     wait(message: string, signal: AbortSignal): Promise<string> {

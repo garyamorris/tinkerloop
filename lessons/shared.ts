@@ -40,11 +40,12 @@ export async function lesson(
     const args = process.argv.slice(2);
     if (supportsScreen(parseOptions(args).values.plain))
       screen = createScreen(cancel);
-    terminal = createTerminal(cancel, undefined, screen);
+    const input = createTerminal(cancel, undefined, screen);
+    terminal = input;
     const config = await configure(
       args,
       controller.signal,
-      terminal.interactive ? terminal : undefined,
+      input.interactive ? input : undefined,
     );
     if (!config) {
       console.log(help);
@@ -55,7 +56,21 @@ export async function lesson(
     const display = createDisplay(config, { screen });
     display.banner("lesson");
     await run({
-      connector: createConnector(config),
+      // With --provider human, the "model" is you, typing in this terminal.
+      connector: createConnector(
+        config,
+        input.interactive
+          ? {
+              show: (text) => display.block(text),
+              read: (signal) =>
+                input.read(
+                  display.modelPrompt,
+                  signal ?? controller.signal,
+                  "You are the model · type an answer or a tool request",
+                ),
+            }
+          : undefined,
+      ),
       config,
       signal: controller.signal,
       display,
