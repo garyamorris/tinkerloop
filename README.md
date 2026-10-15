@@ -152,8 +152,9 @@ and lessons 1–4 wait for Enter after finishing, so you can review the result.
 `--plain` uses a scrolling transcript and exits immediately after a quoted task.
 Without a terminal, configure settings and pass a task; there are no setup
 questions, and writes and commands are denied.
-Exit codes: `0` for a completed run or normal chat exit, `1` for an error or
-incomplete single-task run, and `130` for Ctrl+C cancellation.
+In chat, Ctrl+C stops the current turn and keeps the conversation; at the
+prompt it quits. Exit codes: `0` for a completed run or normal chat exit, `1`
+for an error or incomplete single-task run, and `130` for Ctrl+C cancellation.
 
 Interactive terminals format basic Markdown and wrap prose to their width.
 `NO_COLOR` disables colors; `TERM=dumb` uses the scrolling view. Redirected stdout

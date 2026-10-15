@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
+import { createInterrupts } from "../src/main.js";
 
 test("the real CLI renders usage on stderr and keeps piped stdout clean", async () => {
   const server = createServer(async (request, response) => {
@@ -71,4 +72,26 @@ test("the real CLI renders usage on stderr and keeps piped stdout clean", async 
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(cwd, { recursive: true, force: true });
   }
+});
+
+test("Ctrl+C stops the active chat turn first, and ends the session otherwise", () => {
+  const interrupts = createInterrupts();
+  const first = interrupts.startTurn();
+  interrupts.cancel();
+  assert.equal(first.aborted, true);
+  assert.equal(interrupts.session.aborted, false);
+  assert.equal(interrupts.endTurn(), true);
+
+  const second = interrupts.startTurn();
+  assert.equal(second.aborted, false);
+  assert.equal(interrupts.endTurn(), false); // A finished turn was not cancelled.
+
+  interrupts.startTurn();
+  interrupts.cancel();
+  interrupts.cancel(); // A second press while the turn is still stopping.
+  assert.equal(interrupts.session.aborted, true);
+
+  const idle = createInterrupts();
+  idle.cancel(); // Ctrl+C at the prompt.
+  assert.equal(idle.session.aborted, true);
 });

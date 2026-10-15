@@ -73,7 +73,8 @@ with instructions when configuration is missing.
 | PgUp/PgDn | Scroll the transcript or a long approval proposal |
 | `y` during approval | Approve that one action |
 | `n` or Enter during approval | Deny that action |
-| Ctrl+C | Cancel and exit, restoring the terminal |
+| Ctrl+C during a chat turn | Stop that turn and keep the conversation |
+| Ctrl+C at the prompt, or twice | Exit, restoring the terminal |
 | Ctrl+D on empty chat input | Exit |
 
 Terminals with bracketed paste support can paste multiple lines without

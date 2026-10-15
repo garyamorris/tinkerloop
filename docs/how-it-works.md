@@ -96,7 +96,10 @@ handles tool calls. A task passed as an argument runs one turn. Full-screen mode
 waits for Enter before exiting so the answer stays visible; `--plain` exits
 immediately after the turn.
 
-Ctrl+C aborts HTTP requests and active commands, then returns exit code 130.
+In chat, Ctrl+C stops the current turn: it aborts the HTTP request or command,
+records a result for every requested tool, and returns to the prompt with the
+conversation intact. Ctrl+C at the prompt, a second Ctrl+C, or Ctrl+C during a
+quoted single task exits with code 130.
 The model request timeout is five minutes. Shell commands have a 30-second limit;
 their process trees are terminated on timeout or cancellation. Background jobs,
 interactive subprocesses, and persistent terminal sessions are outside this
