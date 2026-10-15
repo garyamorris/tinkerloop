@@ -5,6 +5,18 @@ npm run lesson:1
 npm run lesson:1 -- "Explain what fetch does in two sentences."
 ```
 
+Missing settings open guided setup in a terminal. Choose your provider, enter a
+model ID, and supply that provider's API key if needed. Full-screen key input is
+hidden and kept only for this run. Or configure everything explicitly:
+
+```sh
+npm run lesson:1 -- --provider openai --model gpt-5.4-mini
+```
+
+Use a model your account can access. See [provider setup](../../docs/providers.md)
+for all four connectors. After the response, Enter closes the full-screen view;
+`--plain` prints a scrolling transcript instead.
+
 Read [index.ts](index.ts). A system prompt, one user message, and an empty tool
 list go to `connector.complete`. The reply contains the assistant's text and a
 stop reason. This stage has no local tools and cannot edit files or run commands.

@@ -1,11 +1,12 @@
 [
   {
     "stop_reason": "tool_use",
+    "usage": { "input_tokens": 50, "output_tokens": 80, "cache_read_input_tokens": 1000, "cache_creation_input_tokens": 200 },
     "content": [
       { "type": "thinking", "thinking": "inspect", "signature": "opaque-signature" },
       { "type": "tool_use", "id": "call_1", "name": "read_file", "input": { "path": "README.md" } },
       { "type": "tool_use", "id": "call_2", "name": "read_file", "input": { "path": "missing.md" } }
     ]
   },
-  { "stop_reason": "end_turn", "content": [{ "type": "text", "text": "A tiny harness." }] }
+  { "stop_reason": "end_turn", "usage": { "input_tokens": 500, "output_tokens": 40, "cache_read_input_tokens": 1000, "cache_creation_input_tokens": 0 }, "content": [{ "type": "text", "text": "A tiny harness." }] }
 ]

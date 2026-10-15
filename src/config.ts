@@ -10,6 +10,8 @@ export interface Config {
   baseUrl: string;
   cwd: string;
   maxSteps: number;
+  contextWindow?: number;
+  plain?: boolean;
   prompt: string;
 }
 
@@ -17,15 +19,19 @@ export const help = `Tinkerloop — a tiny coding harness, explained from the gr
 
 Usage: tinkerloop [options] ["task"]
 
-No task starts a chat. /clear resets history; /exit quits.
+No task starts a chat. /help, /usage, /context, /clear, /exit.
+In a terminal, missing provider/model settings are requested during setup.
 
-  --provider <name>  openai (default), anthropic, gemini, compatible
-  --model <id>       Required, or set TINKERLOOP_MODEL
+  --provider <name>  openai, anthropic, gemini, compatible (scripts default to openai)
+  --model <id>       Model ID, or set TINKERLOOP_MODEL (prompted in a terminal)
   --cwd <path>       Working directory (default: current directory)
   --max-steps <n>    Model requests per user turn (default: 10)
+  --context-window <n>  Optional model context limit, in tokens
+  --plain           Use a scrolling transcript instead of the full-screen view
   --help            Show this help without credentials
 
 Environment: TINKERLOOP_PROVIDER, TINKERLOOP_MODEL, TINKERLOOP_BASE_URL,
+TINKERLOOP_CONTEXT_WINDOW,
 OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_COMPATIBLE_API_KEY.
 Optional .env.local is loaded from the directory where you launch the CLI.
 Reads run automatically. Each write and shell command requires approval.
@@ -37,11 +43,8 @@ export function loadLocalEnv(): void {
   if (existsSync(path)) process.loadEnvFile(path);
 }
 
-export function readConfig(
-  args = process.argv.slice(2),
-  env = process.env,
-): Config | undefined {
-  const { values, positionals } = parseArgs({
+export function parseOptions(args = process.argv.slice(2)) {
+  return parseArgs({
     args,
     allowPositionals: true,
     options: {
@@ -49,11 +52,21 @@ export function readConfig(
       model: { type: "string" },
       cwd: { type: "string" },
       "max-steps": { type: "string" },
+      "context-window": { type: "string" },
+      plain: { type: "boolean" },
       help: { type: "boolean" },
     },
   });
+}
+
+export function readConfig(
+  args = process.argv.slice(2),
+  env = process.env,
+): Config | undefined {
+  const { values, positionals } = parseOptions(args);
   if (values.help) return undefined;
-  const provider = values.provider ?? env.TINKERLOOP_PROVIDER ?? "openai";
+  const provider =
+    values.provider ?? (env.TINKERLOOP_PROVIDER?.trim() || "openai");
   if (!["openai", "anthropic", "gemini", "compatible"].includes(provider)) {
     throw new Error(
       `Unknown provider "${provider}". Choose openai, anthropic, gemini, or compatible.`,
@@ -97,6 +110,14 @@ export function readConfig(
   const maxSteps = Number(values["max-steps"] ?? "10");
   if (!Number.isSafeInteger(maxSteps) || maxSteps < 1)
     throw new Error("--max-steps must be a positive whole number.");
+  const contextValue =
+    values["context-window"] ?? env.TINKERLOOP_CONTEXT_WINDOW;
+  const contextWindow = contextValue?.trim() ? Number(contextValue) : undefined;
+  if (
+    contextWindow !== undefined &&
+    (!Number.isSafeInteger(contextWindow) || contextWindow < 1)
+  )
+    throw new Error("--context-window must be a positive whole number.");
   return {
     provider: provider as Provider,
     model,
@@ -104,6 +125,8 @@ export function readConfig(
     baseUrl,
     cwd: resolve(values.cwd ?? "."),
     maxSteps,
+    contextWindow,
+    plain: Boolean(values.plain),
     prompt: positionals.join(" ").trim(),
   };
 }

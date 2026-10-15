@@ -8,6 +8,8 @@ HTTP call.
 ## 1. Configuration selects a connector
 
 [`config.ts`](../src/config.ts) reads flags and environment variables.
+[`setup.ts`](../src/setup.ts) asks for missing settings when terminal input is
+available, then uses the same configuration validation. Answers stay in memory.
 [`connectors/index.ts`](../src/connectors/index.ts) selects one implementation
 of `ModelConnector`. The loop uses the same interface for every provider:
 
@@ -20,6 +22,9 @@ interface ModelConnector {
 `ModelRequest` contains instructions, messages, tool descriptions, and an abort
 signal. `ModelReply` contains an assistant message and a stop reason. The
 connectors expose the actual HTTP bodies; no SDK owns the execution loop.
+An optional `usage` field carries token counts separately from conversation
+messages. [`usage.ts`](../src/usage.ts) normalizes provider accounting; missing
+metrics remain unknown.
 
 ## 2. Messages are memory
 
@@ -86,8 +91,10 @@ bounded turn. No automatic retry or infinite recovery loop hides this behavior.
 ## 5. The outer chat loop accepts follow-ups
 
 The outer loop in `main.ts` asks for another user prompt after `runAgent` ends.
-It handles `/clear` and `/exit`; the inner loop handles tool calls. A task passed
-as a command argument runs one turn and exits.
+It handles `/help`, `/usage`, `/context`, `/clear`, and `/exit`; the inner loop
+handles tool calls. A task passed as an argument runs one turn. Full-screen mode
+waits for Enter before exiting so the answer stays visible; `--plain` exits
+immediately after the turn.
 
 Ctrl+C aborts HTTP requests and active commands, then returns exit code 130.
 The model request timeout is two minutes. Shell commands have a 30-second limit;
@@ -95,9 +102,20 @@ their process trees are terminated on timeout or cancellation. Background jobs,
 interactive subprocesses, and persistent terminal sessions are outside this
 small implementation.
 
+## 6. Presentation observes the loop
+
+Callbacks announce requests, replies, and tool results. [`display.ts`](../src/display.ts)
+uses them to render assistant text and update usage; they do not execute tools.
+[`screen.ts`](../src/screen.ts) uses Node's `emitKeypressEvents`, raw input, and
+ANSI cursor commands to redraw a fixed viewport. An alternate screen keeps the
+shell's earlier output intact, and `finally` restores the terminal on exit.
+The screen owns a bounded transcript for viewing. `Message[]` remains the
+separate conversation memory used by the harness. `--plain` removes the viewport
+while keeping the same agent behavior. See the [terminal guide](terminal.md).
+
 ## What to add later
 
 Long conversations eventually exceed a model's context window. Tinkerloop
 surfaces that API error rather than silently summarizing or dropping messages.
-History compaction, token accounting, streaming, session storage, and stronger
+History compaction, streaming, session storage, and stronger
 process isolation are useful extensions once you understand the basic loop.

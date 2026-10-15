@@ -3,10 +3,16 @@
 Run lessons from the repository root after following the [quickstart](../README.md).
 All examples call a real model. There is no offline model mode.
 
+Run `npm run lesson:1` to begin. In a terminal, missing provider/model settings
+open guided setup; full-screen mode can also accept a hidden session API key.
+Lessons 1–4 keep the result on screen until you press Enter. Use PgUp/PgDn to
+review it, or add `-- --plain` for an ordinary scrolling transcript.
+
 Read these shared pieces first:
 
-1. [`shared.ts`](shared.ts) loads configuration, selects your connector, and
-   handles startup errors and Ctrl+C. It does not implement the agent loop.
+1. [`shared.ts`](shared.ts) loads or prompts for configuration, selects your connector, creates
+   the terminal display, and handles startup errors and Ctrl+C. Each lesson
+   calls the model and prints its reply explicitly; the display does not run it.
 2. [`src/types.ts`](../src/types.ts) describes what each stage passes around.
    `Message[]` is history; `ToolDefinition` describes a function to a model;
    `ToolCall` is a request; `ToolResult` records what actually happened.

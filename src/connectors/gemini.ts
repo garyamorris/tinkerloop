@@ -1,4 +1,5 @@
 import type { ModelConnector } from "../types.js";
+import { readUsage } from "../usage.js";
 import { array, object, postJson, string, type Fetch } from "./http.js";
 
 export function createGeminiConnector(
@@ -69,6 +70,7 @@ export function createGeminiConnector(
         .map((part) => string(part.text))
         .join("\n");
       return {
+        usage: readUsage("gemini", response.usage),
         message: { role: "assistant", content, toolCalls, providerData: steps },
         stopReason:
           response.status === "requires_action" && toolCalls.length

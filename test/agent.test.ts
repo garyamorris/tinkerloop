@@ -173,3 +173,43 @@ test("a provider failure does not cause another request or execute tools", async
     /HTTP 429/,
   );
 });
+
+test("presentation hooks receive usage and one result for each execution without changing history", async () => {
+  const replies = [
+    { ...requestTools("one"), usage: { inputTokens: 100, outputTokens: 20 } },
+    answer(),
+  ];
+  const events: string[] = [];
+  const messages: Message[] = [];
+  await runAgent({
+    connector: { complete: async () => replies.shift()! },
+    systemPrompt: "",
+    messages,
+    tools: [],
+    maxSteps: 2,
+    execute: async () => {
+      throw new Error("Denied");
+    },
+    onRequest: (step) => events.push(`request:${step}`),
+    onReply: (reply) =>
+      events.push(`reply:${reply.usage?.inputTokens ?? "unknown"}`),
+    onTool: (call) => events.push(`tool:${call.id}`),
+    onToolResult: (result, call, duration) => {
+      assert.ok(duration >= 0);
+      assert.equal(result.callId, call.id);
+      events.push(`result:${result.isError}`);
+    },
+  });
+  assert.deepEqual(events, [
+    "request:1",
+    "reply:100",
+    "tool:one",
+    "result:true",
+    "request:2",
+    "reply:unknown",
+  ]);
+  assert.deepEqual(
+    messages.map((message) => message.role),
+    ["assistant", "tool", "assistant"],
+  );
+});

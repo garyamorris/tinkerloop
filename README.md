@@ -14,6 +14,11 @@ There is no agent framework and there are **zero runtime dependencies**. Model
 connectors use `fetch`; files, processes, and terminal input use Node's built-in
 APIs. The [core loop](src/agent.ts) is small enough to read in one sitting.
 
+The full-screen terminal has a fixed header, scrollable conversation, input line,
+and live input/output/cache token counts. It renders basic Markdown and code,
+shows tool activity, and asks before changes. `/usage` shows session totals;
+`/context` inspects conversation size. [See the terminal guide](docs/terminal.md).
+
 ## Try it
 
 You need **Node.js 24+**, npm, and access to a tool-capable model. Real API calls
@@ -24,10 +29,17 @@ OpenAI-compatible endpoint. See [provider setup](docs/providers.md).
 git clone https://github.com/garyamorris/tinkerloop.git
 cd tinkerloop
 npm ci
+npm run dev
 ```
 
-Copy `.env.example` to `.env.local` (`cp .env.example .env.local` on macOS/Linux,
-or `Copy-Item .env.example .env.local` in PowerShell). Edit the copy:
+**Just run it:** when settings are missing, Tinkerloop asks you to choose a
+provider and enter a model ID. Full-screen mode also accepts a hidden API key
+for this session. Arrow keys choose, Enter confirms, and Ctrl+C quits. No
+settings or keys are saved automatically. The same setup works in every lesson.
+
+To skip those questions on future runs, copy `.env.example` to `.env.local`
+(`cp .env.example .env.local` on macOS/Linux, or
+`Copy-Item .env.example .env.local` in PowerShell). Edit the copy:
 
 ```dotenv
 TINKERLOOP_PROVIDER=openai
@@ -35,19 +47,23 @@ TINKERLOOP_MODEL=gpt-5.4-mini
 OPENAI_API_KEY=replace-with-your-own-key
 ```
 
-Use a model ID available to your API account; `gpt-5.4-mini` is an example, not a
-default. An existing environment variable takes precedence over `.env.local`.
+Use a model ID available to your API account. Setup offers `gpt-5.4-mini` as an
+OpenAI suggestion; press Enter to accept or type a different ID. Scripts still
+require an explicit model. Existing environment variables take precedence over `.env.local`.
 Only your chosen provider needs credentials. Keep `.env.local` private.
 
 ```sh
-# Ask one question, then exit.
+# Ask one question. In full-screen mode, press Enter after reviewing the answer.
 npm run dev -- "Read README.md and explain this project in three sentences."
 
-# Start a conversation. /clear forgets it; /exit quits.
+# Start a conversation. /usage and /context inspect it; /exit quits.
 npm run dev
 
 # Try a real coding task in the deliberately broken practice project.
 npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run npm test."
+
+# Prefer a normal scrolling terminal transcript?
+npm run dev -- --plain
 ```
 
 **Review each proposed edit and command before typing `y`.** Reads happen
@@ -121,17 +137,29 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 
 | Option | Purpose | Default |
 | --- | --- | --- |
-| `--provider` | `openai`, `anthropic`, `gemini`, or `compatible` | `TINKERLOOP_PROVIDER`, then `openai` |
-| `--model` | Provider's model ID | `TINKERLOOP_MODEL`; required |
+| `--provider` | `openai`, `anthropic`, `gemini`, or `compatible` | Environment, then prompt; scripts default to `openai` |
+| `--model` | Provider's model ID | Environment, then prompt; required for scripts |
 | `--cwd` | Directory for local tools | Launch directory |
 | `--max-steps` | Maximum model requests per user turn | `10` |
+| `--context-window` | Optional model token limit, to show a context percentage | `TINKERLOOP_CONTEXT_WINDOW`; otherwise unset |
+| `--plain` | Use a scrolling transcript | Full-screen in a capable terminal |
 | `--help` | Show help without an API key | — |
 
 `.env.local` is loaded from the **launch directory**, not the `--cwd` target.
-Assistant text goes to stdout; status, prompts, and approval previews go to
-stderr. Without a terminal, pass a task argument; writes and commands are denied.
+Full-screen mode uses an alternate terminal screen and restores it on exit.
+Use PgUp/PgDn to scroll, and up/down to recall previous input. A quoted task
+and lessons 1–4 wait for Enter after finishing, so you can review the result.
+`--plain` uses a scrolling transcript and exits immediately after a quoted task.
+Without a terminal, configure settings and pass a task; there are no setup
+questions, and writes and commands are denied.
 Exit codes: `0` for a completed run or normal chat exit, `1` for an error or
 incomplete single-task run, and `130` for Ctrl+C cancellation.
+
+Interactive terminals format basic Markdown and wrap prose to their width.
+`NO_COLOR` disables colors; `TERM=dumb` uses the scrolling view. Redirected stdout
+stays plain model text; branding, progress, and usage stay on stderr. `/clear` forgets the conversation
+while retaining usage totals for this process. A dash means the provider did
+not report that token metric, rather than zero usage.
 
 ## Find your way around
 
@@ -142,6 +170,9 @@ incomplete single-task run, and `130` for Ctrl+C cancellation.
 | [`src/agent.ts`](src/agent.ts) | The model/tool loop |
 | [`src/tools.ts`](src/tools.ts), [`src/command.ts`](src/command.ts) | Local file and shell tools |
 | [`src/main.ts`](src/main.ts), [`src/terminal.ts`](src/terminal.ts) | Chat and human approvals |
+| [`src/setup.ts`](src/setup.ts), [`src/config.ts`](src/config.ts) | Guided startup and explicit configuration |
+| [`src/screen.ts`](src/screen.ts) | Optional full-screen view and keyboard input, using native Node APIs |
+| [`src/display.ts`](src/display.ts), [`src/render.ts`](src/render.ts), [`src/usage.ts`](src/usage.ts) | Terminal presentation and provider-independent token accounting |
 | [`lessons/`](lessons/) | Runnable stages with explanations and exercises |
 
 Next steps: [add a tool or connector](docs/extending.md),

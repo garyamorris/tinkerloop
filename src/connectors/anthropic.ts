@@ -1,4 +1,5 @@
 import type { ModelConnector } from "../types.js";
+import { readUsage } from "../usage.js";
 import { array, object, postJson, string, type Fetch } from "./http.js";
 
 export function createAnthropicConnector(
@@ -73,6 +74,7 @@ export function createAnthropicConnector(
         String(response.stop_reason),
       );
       return {
+        usage: readUsage("anthropic", response.usage),
         message: {
           role: "assistant",
           content,

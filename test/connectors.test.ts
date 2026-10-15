@@ -48,6 +48,8 @@ async function roundTrip(connector: ModelConnector): Promise<ModelReply> {
   const request = { systemPrompt: "Tutor", messages, tools: readOnlyTools };
   const reply = await connector.complete(request);
   assert.equal(reply.stopReason, "tool_calls");
+  assert.equal(reply.usage?.outputTokens, 80);
+  assert.equal(reply.usage?.cacheReadTokens, 1000);
   assert.deepEqual(reply.message.toolCalls[0], {
     id: "call_1",
     name: "read_file",
@@ -64,6 +66,7 @@ async function roundTrip(connector: ModelConnector): Promise<ModelReply> {
     });
   }
   const final = await connector.complete(request);
+  assert.equal(final.usage?.inputTokens, 1500);
   assert.equal(final.stopReason, "complete");
   assert.equal(final.message.content, "A tiny harness.");
   return reply;

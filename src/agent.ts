@@ -2,6 +2,7 @@ import type {
   AssistantMessage,
   Message,
   ModelConnector,
+  ModelReply,
   ToolCall,
   ToolDefinition,
   ToolResult,
@@ -17,6 +18,9 @@ export interface AgentOptions {
   signal?: AbortSignal;
   onMessage?(message: AssistantMessage): void;
   onTool?(call: ToolCall): void;
+  onRequest?(step: number): void;
+  onReply?(reply: ModelReply): void;
+  onToolResult?(result: ToolResult, call: ToolCall, durationMs: number): void;
 }
 
 // This is the harness. The model proposes actions; this program runs them.
@@ -35,6 +39,7 @@ export async function runAgent(
   } = options;
   for (let step = 0; step < maxSteps; step++) {
     signal?.throwIfAborted();
+    options.onRequest?.(step + 1);
     const reply = await connector.complete({
       systemPrompt,
       messages,
@@ -43,6 +48,7 @@ export async function runAgent(
     });
     signal?.throwIfAborted();
     options.onMessage?.(reply.message);
+    options.onReply?.(reply);
     // A partial tool call cannot safely be executed or added to later history.
     if (reply.stopReason === "incomplete") return "incomplete";
     const calls = reply.message.toolCalls;
@@ -64,21 +70,24 @@ export async function runAgent(
         continue;
       }
       options.onTool?.(call);
+      const started = performance.now();
       // Pair every request with a result, including failed or denied requests.
+      let result: ToolResult;
       try {
-        const result = await execute(call);
+        result = await execute(call);
         if (result.callId !== call.id || result.name !== call.name)
           throw new Error("Tool result did not match its request.");
-        messages.push(result);
       } catch (error) {
-        messages.push({
+        result = {
           role: "tool",
           callId: call.id,
           name: call.name,
           content: error instanceof Error ? error.message : String(error),
           isError: true,
-        });
+        };
       }
+      messages.push(result);
+      options.onToolResult?.(result, call, performance.now() - started);
     }
     signal?.throwIfAborted();
   }

@@ -1,6 +1,7 @@
 [
   {
     "status": "completed",
+    "usage": { "input_tokens": 1200, "output_tokens": 80, "input_tokens_details": { "cached_tokens": 1000, "cache_write_tokens": 32 }, "output_tokens_details": { "reasoning_tokens": 20 } },
     "output": [
       { "type": "reasoning", "id": "reason_1", "summary": [], "encrypted_content": "opaque-reasoning" },
       { "type": "function_call", "call_id": "call_1", "name": "read_file", "arguments": "{\"path\":\"README.md\"}" }
@@ -8,6 +9,7 @@
   },
   {
     "status": "completed",
+    "usage": { "input_tokens": 1500, "output_tokens": 40, "input_tokens_details": { "cached_tokens": 1000 }, "output_tokens_details": { "reasoning_tokens": 0 } },
     "output": [{ "type": "message", "role": "assistant", "content": [{ "type": "output_text", "text": "A tiny harness." }] }]
   }
 ]

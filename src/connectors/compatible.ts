@@ -1,4 +1,5 @@
 import type { ModelConnector } from "../types.js";
+import { readUsage } from "../usage.js";
 import {
   array,
   object,
@@ -64,6 +65,7 @@ export function createCompatibleConnector(
           };
         });
       return {
+        usage: readUsage("compatible", response.usage),
         message: {
           role: "assistant",
           content: message.content == null ? "" : string(message.content),

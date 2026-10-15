@@ -47,6 +47,17 @@ export interface ModelRequest {
 export interface ModelReply {
   message: AssistantMessage;
   stopReason: "complete" | "tool_calls" | "incomplete";
+  usage?: TokenUsage;
+}
+
+// Cache reads/writes are parts of input, not extra tokens to add to it.
+// Missing fields mean "not reported"; a reported zero is still useful data.
+export interface TokenUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  reasoningTokens?: number;
 }
 
 export interface ModelConnector {

@@ -12,9 +12,16 @@ or ignored `.env.local`; never add it to a source file.
 | `compatible` | Chat Completions with function tools | `OPENAI_COMPATIBLE_API_KEY` (optional) | Your server's catalog |
 
 Set `TINKERLOOP_PROVIDER` and `TINKERLOOP_MODEL` in `.env.local` to avoid typing
-flags. Command-line options take precedence. The default provider is OpenAI;
-there is deliberately no default model, so you choose what you will run and pay
-for. You only need the key for your selected provider.
+flags. Command-line options take precedence. In a terminal, missing settings
+open guided setup: choose the provider, enter a model ID, then supply any missing
+endpoint or key. OpenAI setup offers `gpt-5.4-mini` as a suggestion that you can
+accept or replace. A full-screen key prompt hides input and keeps the key only
+in this process. It never edits your environment or `.env.local`.
+
+Without terminal input, there are no questions: the provider defaults to OpenAI
+and a model must be configured. In `--plain` mode, set keys in your environment
+or `.env.local`; its readline prompts do not accept secret input. You only need
+credentials for the selected provider.
 
 ## OpenAI
 

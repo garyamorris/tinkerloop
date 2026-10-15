@@ -39,6 +39,28 @@ test("help needs no key or model and invalid configuration fails clearly", () =>
   );
 });
 
+test("context limits are optional, validated, and overridden by flags", () => {
+  assert.equal(readConfig([], env)!.contextWindow, undefined);
+  assert.equal(
+    readConfig([], { ...env, TINKERLOOP_CONTEXT_WINDOW: "1000" })!
+      .contextWindow,
+    1000,
+  );
+  assert.equal(
+    readConfig(["--context-window", "2000"], {
+      ...env,
+      TINKERLOOP_CONTEXT_WINDOW: "1000",
+    })!.contextWindow,
+    2000,
+  );
+  for (const value of ["0", "-1", "1.5", "not-a-number"]) {
+    assert.throws(
+      () => readConfig([`--context-window=${value}`], env),
+      /positive whole/,
+    );
+  }
+});
+
 test("native provider credentials never become compatible endpoint credentials", () => {
   const config = readConfig(["--provider", "compatible"], {
     ...env,

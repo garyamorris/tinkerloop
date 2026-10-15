@@ -1,4 +1,5 @@
 import type { ModelConnector } from "../types.js";
+import { readUsage } from "../usage.js";
 import {
   array,
   object,
@@ -73,6 +74,7 @@ export function createOpenAIConnector(
         .join("\n");
 
       return {
+        usage: readUsage("openai", response.usage),
         message: {
           role: "assistant",
           content,

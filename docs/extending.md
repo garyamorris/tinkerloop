@@ -38,6 +38,9 @@ Implement `ModelConnector.complete` with a direct `fetch` request:
 4. Preserve original assistant blocks in `providerData`, including any required
    signatures or reasoning items. Replay them correctly on later requests.
 5. Distinguish complete answers, tool requests, and incomplete output.
+   Pass response usage through `readUsage` in `src/usage.ts` (add your provider's
+   mapping there). Keep unavailable counters undefined so the terminal can
+   distinguish missing metrics from reported zeroes.
 6. Add the provider to `Provider`, configuration validation and key selection,
    the factory switch, help, and provider documentation.
 7. Add HTTP fixtures for a complete tool round trip, malformed input, and

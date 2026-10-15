@@ -3,6 +3,11 @@
 | Symptom | What to check |
 | --- | --- |
 | Node syntax or engine error | Run `node --version`; use Node 24 or later. |
+| Setup appears every run | Answers are session-only. Set `TINKERLOOP_PROVIDER`, `TINKERLOOP_MODEL`, and your key in the environment or ignored `.env.local` to skip questions. |
+| No full-screen view | It needs terminal stdin, stdout, and stderr, without `--plain` or `TERM=dumb`. Pipes use ordinary output. |
+| Screen says to enlarge the terminal | Resize to at least 30 columns by 12 rows, or restart with `--plain`. |
+| Missing token counts | `—` means the API did not report that metric. `/usage` shows reporting coverage; counts are never invented. |
+| No context percentage | Set `--context-window` to your model's documented token limit; `/context` still shows measured input without it. |
 | “Choose a model” | Set `TINKERLOOP_MODEL` or pass `--model` with a real provider model ID. |
 | “Set …_API_KEY” | Configure the key for the selected provider. `.env.local` comes from the launch directory, not `--cwd`. |
 | HTTP 401 or 403 | Check the selected provider, key validity, API project permissions, and model access. |
