@@ -62,7 +62,9 @@ provider. We do not automatically upload the full repository. `.env.local` is
 not sent as part of configuration; its selected key goes in an authentication
 header.
 
-Conversations are kept in memory and disappear on exit or `/clear`. There is no
-application transcript file. Provider-side logging and retention remain governed
+Conversations are kept in memory and disappear on exit or `/clear`. Nothing is
+written to disk unless you pass `--trace <dir>`, which saves every request and
+response body there. Those files omit headers and keys but contain your prompts,
+file contents, and command output: keep them private, and delete them when done. Provider-side logging and retention remain governed
 by your provider. Terminal output and your shell's history may still be saved by
 other software.

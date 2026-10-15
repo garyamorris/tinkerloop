@@ -14,6 +14,7 @@
 | HTTP 404 | Check the model ID; for compatible servers, check the base URL and supported API route. |
 | HTTP 429 | Check provider rate limits, quota, and billing. Tinkerloop does not retry automatically. |
 | “fetch failed” | Check network access, proxy/firewall settings, DNS, and endpoint availability. |
+| Unsure what the model received | Rerun with `--trace traces` and open the numbered request and response files. |
 | Incomplete response | The model hit an output limit or returned a nonfinal status. Try a smaller task or inspect the provider's limits. Partial tool requests are not executed. |
 | Request limit reached | The turn used all allowed model requests. Inspect what happened; continue in chat or increase `--max-steps` deliberately. |
 | Context-window error | `/clear` starts fresh. There is no automatic compaction or silent message dropping. |

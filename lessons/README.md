@@ -42,4 +42,7 @@ source. An `interface` describes data; it does not validate JSON at runtime.
 That is why the tool executor still checks model-generated arguments.
 
 **Checkpoint:** before moving to the next lesson, trace the messages sent on each
-API request. Ask yourself which code runs locally and which data reaches the model.
+API request. Add `-- --trace traces` to any lesson to save every request and
+response body as numbered JSON files, then open them side by side: watch history
+grow, and notice that the tool definitions are resent every time. Ask yourself
+which code runs locally and which data reaches the model.

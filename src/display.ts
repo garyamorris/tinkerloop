@@ -43,6 +43,10 @@ export const chatHelp = `Chat commands
   /exit     Quit
 `;
 
+function traceNote(folder: string): string {
+  return `Tracing · request and response bodies go to ${folder}`;
+}
+
 function toolTarget(call: ToolCall): string {
   if (!call.arguments || typeof call.arguments !== "object") return "";
   const args = call.arguments as Record<string, unknown>;
@@ -55,7 +59,10 @@ function toolTarget(call: ToolCall): string {
 // Presentation observes the harness. It never owns the agent loop or tools.
 // Separate stdout/stderr options also let tests inspect real output behavior.
 export function createDisplay(
-  config: Pick<Config, "provider" | "model" | "cwd" | "contextWindow">,
+  config: Pick<
+    Config,
+    "provider" | "model" | "cwd" | "contextWindow" | "trace"
+  >,
   options: {
     stdout?: Output;
     stderr?: Output;
@@ -158,6 +165,7 @@ export function createDisplay(
             ? "Follow the lesson below. Token usage appears in the footer."
             : "Describe a task to get started. /help lists chat commands.",
         );
+        if (config.trace) this.note(traceNote(config.trace));
         screen.write("\n");
         updateFooter();
         return;
@@ -168,6 +176,7 @@ export function createDisplay(
       status("A tiny coding harness, explained from the ground up.");
       status(`${config.provider} · ${config.model}`);
       status(workspace);
+      if (config.trace) status(traceNote(config.trace));
       status(
         title
           ? "Token usage follows each response · --help for options"

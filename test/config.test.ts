@@ -20,6 +20,11 @@ test("flags override environment, task words join, and sensible defaults apply",
   assert.equal(config.maxSteps, 3);
   assert.equal(config.prompt, "fix this");
   assert.equal(readConfig([], env)!.maxSteps, 10);
+  assert.equal(readConfig([], env)!.trace, undefined);
+  assert.equal(
+    readConfig(["--trace", "traces"], env)!.trace,
+    resolve("traces"),
+  );
 });
 
 test("help needs no key or model and invalid configuration fails clearly", () => {

@@ -27,6 +27,7 @@ export interface Config {
   cwd: string;
   maxSteps: number;
   contextWindow?: number;
+  trace?: string;
   plain?: boolean;
   prompt: string;
 }
@@ -43,6 +44,7 @@ In a terminal, missing provider/model settings are requested during setup.
   --cwd <path>       Working directory (default: current directory)
   --max-steps <n>    Model requests per user turn (default: 10)
   --context-window <n>  Optional model context limit, in tokens
+  --trace <dir>     Save each request and response body as JSON in <dir>
   --plain           Use a scrolling transcript instead of the full-screen view
   --help            Show this help without credentials
 
@@ -69,6 +71,7 @@ export function parseOptions(args = process.argv.slice(2)) {
       cwd: { type: "string" },
       "max-steps": { type: "string" },
       "context-window": { type: "string" },
+      trace: { type: "string" },
       plain: { type: "boolean" },
       help: { type: "boolean" },
     },
@@ -136,6 +139,7 @@ export function readConfig(
     cwd: resolve(values.cwd ?? "."),
     maxSteps,
     contextWindow,
+    trace: values.trace?.trim() ? resolve(values.trace) : undefined,
     plain: Boolean(values.plain),
     prompt: positionals.join(" ").trim(),
   };

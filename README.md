@@ -64,6 +64,9 @@ npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run n
 
 # Prefer a normal scrolling terminal transcript?
 npm run dev -- --plain
+
+# Save the exact JSON sent to and received from the model, one file per request.
+npm run dev -- --trace traces "Read package.json and summarize it."
 ```
 
 **Review each proposed edit and command before typing `y`.** Reads happen
@@ -142,6 +145,7 @@ Remove the local command later with `npm unlink --global tinkerloop`.
 | `--cwd` | Directory for local tools | Launch directory |
 | `--max-steps` | Maximum model requests per user turn | `10` |
 | `--context-window` | Optional model token limit, to show a context percentage | `TINKERLOOP_CONTEXT_WINDOW`; otherwise unset |
+| `--trace` | Folder for numbered request/response bodies (no headers or keys) | Off |
 | `--plain` | Use a scrolling transcript | Full-screen in a capable terminal |
 | `--help` | Show help without an API key | — |
 

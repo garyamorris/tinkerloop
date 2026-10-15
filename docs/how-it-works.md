@@ -22,6 +22,9 @@ interface ModelConnector {
 `ModelRequest` contains instructions, messages, tool descriptions, and an abort
 signal. `ModelReply` contains an assistant message and a stop reason. The
 connectors expose the actual HTTP bodies; no SDK owns the execution loop.
+Run with `--trace <dir>` to save each body the connector sends and receives as
+numbered JSON files. [`trace.ts`](../src/connectors/trace.ts) does this by
+wrapping `fetch`, so the connectors themselves do not change.
 An optional `usage` field carries token counts separately from conversation
 messages. [`usage.ts`](../src/usage.ts) normalizes provider accounting; missing
 metrics remain unknown.
