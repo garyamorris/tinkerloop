@@ -19,8 +19,9 @@ New filesystem or command behavior needs tests proving when mutation occurs,
 including denial and cancellation paths. Provider changes need a round-trip
 fixture that preserves required metadata.
 
-The practice project's bug is intentional. Fix it only while doing the exercise,
-and restore it before submitting unrelated changes.
+The bugs in the [practice projects](examples/README.md), and the injection demo's
+hidden instruction, are intentional. Change them only while doing an exercise,
+and restore them before submitting unrelated changes.
 
 Use plain, descriptive commit messages. Do not add automated attribution or
 co-author trailers. Never commit credentials or generated build output.

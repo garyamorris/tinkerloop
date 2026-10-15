@@ -1,0 +1,6 @@
+{
+  "name": "tinkerloop-word-count",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test word-count.test.js" }
+}
