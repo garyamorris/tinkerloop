@@ -45,7 +45,8 @@ export function createOpenAIConnector(
           })),
           store: false,
           include: ["reasoning.encrypted_content"],
-          max_output_tokens: 8_192,
+          // Reasoning counts toward this limit, and write_file sends a whole file.
+          max_output_tokens: 16_000,
         },
         signal,
         fetchImpl,

@@ -107,7 +107,11 @@ test("Anthropic groups all tool results and retains signed content blocks", asyn
     http.requests[0]!.headers.get("anthropic-version"),
     "2023-06-01",
   );
-  assert.equal(http.requests[0]!.body.max_tokens, 8192);
+  assert.equal(http.requests[0]!.body.max_tokens, 16_000);
+  // Anthropic caches only on request; the loop resends the same prefix each step.
+  assert.deepEqual(http.requests[0]!.body.cache_control, {
+    type: "ephemeral",
+  });
   const history = array(http.requests[1]!.body.messages).map(object);
   assert.equal(history.length, 3);
   assert.equal(

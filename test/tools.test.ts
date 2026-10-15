@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { runCommand } from "../src/command.js";
+import { keyNames } from "../src/config.js";
+import { errorMessage } from "../src/errors.js";
 import {
   bounded,
   executeTool,
@@ -295,4 +297,27 @@ test("a pre-cancelled request cannot write a file", async (t) => {
   );
   assert.equal(result.isError, true);
   await assert.rejects(readFile(join(cwd, "x")), { code: "ENOENT" });
+});
+
+test("commands never inherit provider keys, and errors redact them", async (t) => {
+  const cwd = await workspace(t);
+  const saved = Object.values(keyNames).map((name) => [name, process.env[name]]);
+  t.after(() => {
+    for (const [name, value] of saved)
+      if (value === undefined) delete process.env[name!];
+      else process.env[name!] = value;
+  });
+  for (const name of Object.values(keyNames))
+    process.env[name] = `secret-value-for-${name}`;
+  const output = await runCommand(
+    `node -e "console.log(Object.keys(process.env).join(' '))"`,
+    cwd,
+  );
+  for (const name of Object.values(keyNames))
+    assert.doesNotMatch(output.stdout, new RegExp(`\\b${name}\\b`));
+  for (const name of Object.values(keyNames))
+    assert.equal(
+      errorMessage(new Error(`failed with secret-value-for-${name}`)),
+      "failed with [redacted]",
+    );
 });

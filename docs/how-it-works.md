@@ -97,7 +97,7 @@ waits for Enter before exiting so the answer stays visible; `--plain` exits
 immediately after the turn.
 
 Ctrl+C aborts HTTP requests and active commands, then returns exit code 130.
-The model request timeout is two minutes. Shell commands have a 30-second limit;
+The model request timeout is five minutes. Shell commands have a 30-second limit;
 their process trees are terminated on timeout or cancellation. Background jobs,
 interactive subprocesses, and persistent terminal sessions are outside this
 small implementation.

@@ -114,9 +114,11 @@ The request counter includes attempted requests, so reporting gaps stay visible.
 
 Repeated history is counted on every request. Session input totals therefore
 grow faster than the current context size. Clearing context does not undo API
-usage. These counts are telemetry, not a billing statement. Caching remains
-controlled by your provider and request configuration; this display does not
-add a separate cache or enable paid cache writes automatically.
+usage. These counts are telemetry, not a billing statement. OpenAI and Gemini
+cache repeated prefixes automatically. Anthropic caches only when asked, so its
+adapter requests caching: a cache write costs a little more than ordinary input,
+and each later read of that prefix costs much less. In an agent loop the next
+step almost always reads it.
 
 Sources: [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching),
 [Anthropic cache accounting](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),

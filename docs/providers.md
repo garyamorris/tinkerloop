@@ -33,7 +33,8 @@ npm run dev -- --provider openai --model gpt-5.4-mini "Read README.md."
 ```
 
 The adapter uses `POST /v1/responses`, function tools, explicit history, and
-encrypted reasoning content when returned. It sets `store: false`.
+encrypted reasoning content when returned. It sets `store: false` and caps
+output, including reasoning, at 16,000 tokens.
 Read the [adapter](../src/connectors/openai.ts),
 [function calling guide](https://developers.openai.com/api/docs/guides/function-calling),
 and [example model documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini).
@@ -50,7 +51,10 @@ npm run lesson:1 -- --provider anthropic --model YOUR_MODEL_ID
 The [adapter](../src/connectors/anthropic.ts) uses `POST /v1/messages`,
 `input_schema` tool definitions, `tool_use` requests, and `tool_result` replies.
 Results for the same assistant turn are grouped into one user message. Signed
-assistant blocks are preserved if returned. Output is capped at 8,192 tokens.
+assistant blocks are preserved if returned. Output is capped at 16,000 tokens.
+Anthropic caches a prompt only when the request asks, so the adapter sets
+top-level `cache_control`. Each loop step resends the previous step's prefix,
+which the next request reads from the cache; watch the footer's cache counters.
 See [handling tool calls](https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls).
 
 ## Gemini

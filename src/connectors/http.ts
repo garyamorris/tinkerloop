@@ -37,7 +37,8 @@ export async function postJson(
   signal?: AbortSignal,
   fetchImpl: Fetch = fetch,
 ): Promise<Record<string, unknown>> {
-  const timeout = AbortSignal.timeout(120_000);
+  // Long enough for a large file rewrite; Ctrl+C still cancels sooner.
+  const timeout = AbortSignal.timeout(300_000);
   const response = await fetchImpl(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },

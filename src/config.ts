@@ -2,7 +2,23 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 
-export type Provider = "openai" | "anthropic" | "gemini" | "compatible";
+export const providers = [
+  "openai",
+  "anthropic",
+  "gemini",
+  "compatible",
+] as const;
+export type Provider = (typeof providers)[number];
+
+// The one list of credential variables. Shell commands never inherit these,
+// and error messages redact their values, so a new provider only adds a line.
+export const keyNames: Record<Provider, string> = {
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  gemini: "GEMINI_API_KEY",
+  compatible: "OPENAI_COMPATIBLE_API_KEY",
+};
+
 export interface Config {
   provider: Provider;
   model: string;
@@ -67,7 +83,7 @@ export function readConfig(
   if (values.help) return undefined;
   const provider =
     values.provider ?? (env.TINKERLOOP_PROVIDER?.trim() || "openai");
-  if (!["openai", "anthropic", "gemini", "compatible"].includes(provider)) {
+  if (!providers.includes(provider as Provider)) {
     throw new Error(
       `Unknown provider "${provider}". Choose openai, anthropic, gemini, or compatible.`,
     );
@@ -77,12 +93,6 @@ export function readConfig(
     throw new Error(
       "Choose a model with --model <id> or TINKERLOOP_MODEL. See docs/providers.md.",
     );
-  const keyNames = {
-    openai: "OPENAI_API_KEY",
-    anthropic: "ANTHROPIC_API_KEY",
-    gemini: "GEMINI_API_KEY",
-    compatible: "OPENAI_COMPATIBLE_API_KEY",
-  };
   const keyName = keyNames[provider as Provider];
   const apiKey = (env[keyName] ?? "").trim();
   if (!apiKey && provider !== "compatible")

@@ -41,8 +41,10 @@ Implement `ModelConnector.complete` with a direct `fetch` request:
    Pass response usage through `readUsage` in `src/usage.ts` (add your provider's
    mapping there). Keep unavailable counters undefined so the terminal can
    distinguish missing metrics from reported zeroes.
-6. Add the provider to `Provider`, configuration validation and key selection,
-   the factory switch, help, and provider documentation.
+6. Add the provider to `providers` and its key variable to `keyNames` in
+   [`config.ts`](../src/config.ts). That one list also removes the key from shell
+   commands and redacts it from error messages. Then update the factory switch,
+   help text, guided setup choices, and provider documentation.
 7. Add HTTP fixtures for a complete tool round trip, malformed input, and
    provider errors. Verify against a real API when credentials are available.
 

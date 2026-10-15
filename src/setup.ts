@@ -1,5 +1,7 @@
 import {
+  keyNames,
   parseOptions,
+  providers,
   readConfig,
   type Config,
   type Provider,
@@ -20,14 +22,6 @@ export interface SetupPrompts {
     secret?: boolean,
   ): Promise<string>;
 }
-
-const providers: Provider[] = ["openai", "anthropic", "gemini", "compatible"];
-export const keyNames: Record<Provider, string> = {
-  openai: "OPENAI_API_KEY",
-  anthropic: "ANTHROPIC_API_KEY",
-  gemini: "GEMINI_API_KEY",
-  compatible: "OPENAI_COMPATIBLE_API_KEY",
-};
 
 export async function configure(
   args: string[],

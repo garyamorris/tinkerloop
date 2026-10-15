@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { keyNames } from "./config.js";
 
 export interface CommandOutput {
   exitCode: number | null;
@@ -19,13 +20,7 @@ export function runCommand(
     const env = { ...process.env };
     // The command does not need our provider credentials. Other local access is
     // still possible: shell commands run with the person's normal permissions.
-    for (const key of [
-      "OPENAI_API_KEY",
-      "ANTHROPIC_API_KEY",
-      "GEMINI_API_KEY",
-      "OPENAI_COMPATIBLE_API_KEY",
-    ])
-      delete env[key];
+    for (const key of Object.values(keyNames)) delete env[key];
     const child = spawn(command, {
       cwd,
       env,

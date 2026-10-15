@@ -43,9 +43,14 @@ export function createAnthropicConnector(
         },
         {
           model,
+          // Every loop step resends the same prefix: tools, system prompt, and
+          // history. Anthropic caches only when asked; this caches up to the
+          // last block, so the next step reads that prefix at a lower price.
+          cache_control: { type: "ephemeral" },
           system: systemPrompt,
           messages: history,
-          max_tokens: 8_192,
+          // Reasoning counts toward this limit, and write_file sends a whole file.
+          max_tokens: 16_000,
           tools: tools.map((tool) => ({
             name: tool.name,
             description: tool.description,
