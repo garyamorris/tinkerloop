@@ -27,7 +27,8 @@ await lesson(
       signal,
       // A command's exit code, stdout, and stderr come back as evidence. A
       // failing test run is an error result the model can act on.
-      execute: (call) => executeTool(call, { cwd: config.cwd, signal, approve }),
+      execute: (call) =>
+        executeTool(call, { cwd: config.cwd, signal, approve }),
       onRequest: (step) => display.request(step, config.maxSteps, messages),
       onReply: (reply) => display.reply(reply),
       onTool: (call) => display.tool(call),

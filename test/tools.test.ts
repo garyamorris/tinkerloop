@@ -301,7 +301,10 @@ test("a pre-cancelled request cannot write a file", async (t) => {
 
 test("commands never inherit provider keys, and errors redact them", async (t) => {
   const cwd = await workspace(t);
-  const saved = Object.values(keyNames).map((name) => [name, process.env[name]]);
+  const saved = Object.values(keyNames).map((name) => [
+    name,
+    process.env[name],
+  ]);
   t.after(() => {
     for (const [name, value] of saved)
       if (value === undefined) delete process.env[name!];

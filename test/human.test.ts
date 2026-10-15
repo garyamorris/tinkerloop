@@ -77,8 +77,14 @@ test("each request shows what an API receives, including resent history", async 
   await connector.complete({ systemPrompt: "Be brief.", messages, tools: [] });
   const second = typed.shown[2]!;
   assert.match(second, /System prompt: unchanged, sent again/);
-  assert.match(second, /already seen:\n {2}1\. user: First question\n {2}2\. you: My answer/);
-  assert.match(second, /New since your last reply:\n {2}3\. user\n {5}Follow-up/);
+  assert.match(
+    second,
+    /already seen:\n {2}1\. user: First question\n {2}2\. you: My answer/,
+  );
+  assert.match(
+    second,
+    /New since your last reply:\n {2}3\. user\n {5}Follow-up/,
+  );
 
   await assert.rejects(
     connector.complete({ systemPrompt: "", messages, tools: [] }),
@@ -109,5 +115,8 @@ test("the harness runs a human model's tool request exactly like a real one", as
   );
   assert.equal(messages[2]?.content, "hello from disk");
   // The second request showed the person the tool result they asked for.
-  assert.match(typed.shown[1]!, /tool result · read_file · call_1\n {5}hello from disk/);
+  assert.match(
+    typed.shown[1]!,
+    /tool result · read_file · call_1\n {5}hello from disk/,
+  );
 });
