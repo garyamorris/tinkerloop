@@ -34,16 +34,19 @@ An adapter translates the shared types into its provider's HTTP format. You can
 learn the loop without learning four protocols simultaneously, then inspect each
 adapter when you're ready. No hidden agent runner drives the lessons.
 
-| Stage | New building block | Entry point |
+| Lesson | New building block | Code |
 | --- | --- | --- |
-| [1](01-model-call/README.md) | A single request | [index.ts](01-model-call/index.ts) |
-| [2](02-conversation/README.md) | Explicit history | [index.ts](02-conversation/index.ts) |
-| [3](03-one-tool/README.md) | Local tool execution and result | [index.ts](03-one-tool/index.ts) |
-| [4](04-the-loop/README.md) | A bounded loop | [index.ts](04-the-loop/index.ts) |
-| [5](05-approvals/README.md) | File writes with human approval | [index.ts](05-approvals/index.ts) |
-| [6](06-commands/README.md) | Commands as evidence; the loop as a function | [index.ts](06-commands/index.ts) |
-| [7](07-chat/README.md) | A conversation around the loop | [index.ts](07-chat/index.ts) |
-| [8](08-the-cli/README.md) | The complete CLI | [src/main.ts](../src/main.ts) |
+| [1. Make a model call](01-model-call/README.md) | One request, one reply | [index.ts](01-model-call/index.ts) |
+| [2. Remember a conversation](02-conversation/README.md) | History sent with every request | [index.ts](02-conversation/index.ts) |
+| [3. Give the model a tool](03-one-tool/README.md) | One tool request and its result | [index.ts](03-one-tool/index.ts) |
+| [4. Build the loop](04-the-loop/README.md) | Repeat until the model answers | [index.ts](04-the-loop/index.ts) |
+| [5. Ask before changing files](05-approvals/README.md) | File writes with your approval | [index.ts](05-approvals/index.ts) |
+| [6. Check work with commands](06-commands/README.md) | Command output as evidence; the loop as a function | [index.ts](06-commands/index.ts) |
+| [7. Wrap the loop in a chat](07-chat/README.md) | An outer loop of your messages | [index.ts](07-chat/index.ts) |
+| [8. Read the complete CLI](08-the-cli/README.md) | Cancellation, errors, and token counts | [src/main.ts](../src/main.ts) |
+
+New to the vocabulary? The [glossary](../docs/glossary.md) defines each term and
+points to the code that implements it.
 
 Imports end in `.js` because those are the filenames Node uses after `tsc` builds
 the app. During development, `tsx` resolves the same imports to the TypeScript

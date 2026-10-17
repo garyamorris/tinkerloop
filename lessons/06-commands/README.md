@@ -1,4 +1,4 @@
-# 6. Let commands provide evidence
+# 6. Check work with commands
 
 ```sh
 npm run lesson:6
@@ -31,4 +31,4 @@ again. Watch the second `npm test` result: that is the evidence. Then try
 [`examples/word-count`](../../examples/word-count/README.md), where one fix is
 not enough and the model has to iterate on test output.
 
-Next: [a conversation around the loop](../07-chat/README.md).
+Next: [7. Wrap the loop in a chat](../07-chat/README.md).

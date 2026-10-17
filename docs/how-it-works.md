@@ -3,7 +3,7 @@
 A coding harness is the program around a language model. It supplies context,
 describes available tools, executes approved requests, and sends the results
 back. The model itself does not have access to your filesystem through a plain
-HTTP call.
+HTTP call. The [glossary](glossary.md) defines each term used below.
 
 ## 1. Configuration selects a connector
 

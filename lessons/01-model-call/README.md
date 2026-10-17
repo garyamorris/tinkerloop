@@ -33,4 +33,4 @@ later history, even though this first stage does not need them yet.
 change only the user message. Observe which part controls style and which part
 sets the task. Avoid logging the config object: it contains your API key.
 
-Next: [conversation history](../02-conversation/README.md).
+Next: [2. Remember a conversation](../02-conversation/README.md).

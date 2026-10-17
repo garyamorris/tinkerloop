@@ -22,4 +22,4 @@ one round of tools, not an arbitrary sequence of model/tool exchanges.
 model. Then improve the tool description and compare its choice of arguments.
 Reads need no approval; edits and commands are unavailable in this lesson.
 
-Next: [the execution loop](../04-the-loop/README.md).
+Next: [4. Build the loop](../04-the-loop/README.md).

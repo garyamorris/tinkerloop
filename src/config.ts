@@ -37,7 +37,8 @@ export interface Config {
 
 export const tagline = "Learn how coding agents work by building the loop.";
 
-export const help = `Tinkerloop — ${tagline}
+export const help = `↻ Tinkerloop
+${tagline}
 
 Usage: tinkerloop [options] ["task"]
 

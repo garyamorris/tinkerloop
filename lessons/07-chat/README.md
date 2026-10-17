@@ -1,4 +1,4 @@
-# 7. Wrap the loop in a conversation
+# 7. Wrap the loop in a chat
 
 ```sh
 npm run lesson:7
@@ -27,4 +27,4 @@ first turn, such as "why was that bug easy to miss?" Then type `/clear` and ask
 the same follow-up again. Run with `--trace traces` and compare the request
 files before and after `/clear`.
 
-Next: [the complete CLI](../08-the-cli/README.md).
+Next: [8. Read the complete CLI](../08-the-cli/README.md).
