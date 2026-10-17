@@ -182,7 +182,7 @@ export function createDisplay(
       if (screen) {
         screen.setHeader([name, where]);
         screen.write(
-          `\n${accent(wrapText(cleanText(intro), width(), "  "))}\n\n`,
+          `\n${wrapText(cleanText(intro), width(), "  ").split("\n").map(accent).join("\n")}\n\n`,
         );
         this.note(legend);
         if (!lesson)
