@@ -35,7 +35,9 @@ export interface Config {
   prompt: string;
 }
 
-export const help = `Tinkerloop — a tiny coding harness, explained from the ground up.
+export const tagline = "Learn how coding agents work by building the loop.";
+
+export const help = `Tinkerloop — ${tagline}
 
 Usage: tinkerloop [options] ["task"]
 

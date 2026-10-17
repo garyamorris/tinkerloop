@@ -52,7 +52,7 @@ test("interactive output renders Markdown and preserves code indentation", () =>
   terminal.display.request(1, 10);
   terminal.display.reply(reply);
   const text = stripVTControlCharacters(terminal.stdout());
-  assert.match(text, /tinkerloop/);
+  assert.match(text, /model/); // The reply is labelled as the model's, not ours.
   assert.match(text, /A small app/);
   assert.match(text, /      const x = 1;/);
   assert.doesNotMatch(text, /\*\*|```|# Result/);
@@ -184,13 +184,53 @@ test("the full-screen view keeps live usage in its footer and retains totals aft
   display.banner();
   assert.match(header.join(" "), /Tinkerloop.*test-model.*practice/);
   display.request(1, 10, [{ role: "user", content: "Hello" }]);
-  assert.match(status, /Thinking.*1\/10/);
+  assert.match(status, /Waiting for the model.*1\/10/);
   display.reply(reply);
   display.finish([{ role: "user", content: "Hello" }, reply.message], 4);
   assert.match(footer.join("\n"), /in 250 · out 20 · cache read 0/);
   assert.match(footer.join("\n"), /25.0% of 1,000 · 2 messages/);
   assert.doesNotMatch(transcript, /cache read|Context ·/);
+  // The loop is visible in the transcript too, not only in the status line.
+  assert.match(transcript, /↻ request 1\/10 · 1 message sent/);
+  assert.match(transcript, /↳ reply · answer/);
   display.clearContext();
   assert.match(footer.join("\n"), /Context · not reported · 0 messages/);
   assert.match(footer.join("\n"), /Session · 1 request · in 250 · out 20/);
+});
+
+test("each trip around the loop is narrated: request, reply, tool, result", () => {
+  const terminal = screen(true, { NO_COLOR: "" });
+  terminal.display.banner({
+    title: "Lesson 4 of 8: Build the loop",
+    goal: "Repeat.",
+  });
+  const history = [{ role: "user" as const, content: "Read a.txt" }];
+  terminal.display.request(1, 10, history);
+  const call = { id: "1", name: "read_file", arguments: { path: "a.txt" } };
+  terminal.display.reply({
+    stopReason: "tool_calls",
+    message: { role: "assistant", content: "", toolCalls: [call] },
+  });
+  terminal.display.tool(call);
+  terminal.display.toolResult(
+    {
+      role: "tool",
+      callId: "1",
+      name: "read_file",
+      content: "hi",
+      isError: false,
+    },
+    call,
+    2,
+  );
+  const log = stripVTControlCharacters(terminal.stderr());
+  assert.match(log, /↻ Tinkerloop · Lesson 4 of 8: Build the loop/);
+  assert.match(log, /Repeat\./);
+  assert.match(
+    log,
+    /↻ model request · ↳ its reply · → a tool your code runs\n/,
+  );
+  assert.match(log, /↻ request 1\/10 · 1 message sent\n/);
+  assert.match(log, /↳ reply · 1 tool call · \d+\.\ds · usage not reported\n/);
+  assert.match(log, /→ read_file a\.txt\n {2}✓ read_file a\.txt · 2 ms/);
 });

@@ -1,7 +1,7 @@
 import { emitKeypressEvents } from "node:readline";
 import type { Key } from "node:readline";
 import { stripVTControlCharacters } from "node:util";
-import { cleanText, literalText, paint } from "./render.js";
+import { cleanText, literalText, mark, paint, palette } from "./render.js";
 
 export function supportsScreen(plain = false): boolean {
   return (
@@ -95,12 +95,12 @@ export function createScreen(
   const output = options.output ?? process.stdout;
   const previousRaw = input.isRaw;
   const color = !Object.hasOwn(options.env ?? process.env, "NO_COLOR");
-  const accent = (text: string) => paint(text, "1;36", color);
-  const muted = (text: string) => paint(text, "90", color);
+  const accent = (text: string) => paint(text, palette.harness, color);
+  const muted = (text: string) => paint(text, palette.muted, color);
   const transcript: string[] = [];
   const history: string[] = [];
   let historyIndex = 0;
-  let header = ["<> Tinkerloop", "Guided setup"];
+  let header = [`${mark} Tinkerloop`, "Guided setup"];
   let footer = ["No model requests yet."];
   let status = "Ready";
   let prompt: InputPrompt | undefined;
