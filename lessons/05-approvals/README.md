@@ -1,4 +1,4 @@
-# 5. Ask before changing anything
+# 5. Ask before changing files
 
 ```sh
 npm run lesson:5
@@ -30,4 +30,4 @@ unfinished. Run it again and approve. Then play the model with `--provider human
 propose a `write_file` yourself, and notice that you then approve your own
 request as the user. The model and the person approving are separate roles.
 
-Next: [commands as evidence](../06-commands/README.md).
+Next: [6. Check work with commands](../06-commands/README.md).

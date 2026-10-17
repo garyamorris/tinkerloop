@@ -7,6 +7,12 @@ import { lesson } from "../shared.js";
 const tools = allTools.filter((tool) => tool.name !== "run_command");
 
 await lesson(
+  {
+    number: 5,
+    title: "Ask before changing files",
+    goal: "A write needs your approval, and a denial goes back to the model as a result.",
+    workspace: "examples/tiny-project",
+  },
   async ({ connector, config, systemPrompt, signal, display, approve }) => {
     const messages: Message[] = [
       {
@@ -61,5 +67,4 @@ await lesson(
       `Stopped after ${config.maxSteps} requests; the task may be unfinished.`,
     );
   },
-  { workspace: "examples/tiny-project" },
 );

@@ -20,6 +20,22 @@ export function literalText(text: string): string {
     );
 }
 
+// The whole palette. Each part of the loop has one colour: you (green), the
+// model (magenta), and the harness, meaning this program (cyan). The rest is grey.
+export const palette = {
+  harness: "1;36",
+  you: "1;32",
+  model: "1;35",
+  muted: "90",
+  ok: "32",
+  error: "31",
+  code: "36",
+  strong: "1",
+} as const;
+
+// The mark appears once per model request: one trip around the loop.
+export const mark = "↻";
+
 export function paint(text: string, code: string, color: boolean): string {
   return color ? `\x1b[${code}m${text}\x1b[0m` : text;
 }
@@ -51,9 +67,11 @@ export function wrapText(
 function inline(text: string, color: boolean): string {
   return text
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1 ($2)")
-    .replace(/`([^`]+)`/g, (_match, code: string) => paint(code, "36", color))
+    .replace(/`([^`]+)`/g, (_match, code: string) =>
+      paint(code, palette.code, color),
+    )
     .replace(/\*\*([^*]+)\*\*/g, (_match, bold: string) =>
-      paint(bold, "1", color),
+      paint(bold, palette.strong, color),
     );
 }
 
@@ -83,13 +101,15 @@ export function renderMarkdown(
       ) {
         fence = undefined;
         output.push("");
-      } else output.push(paint(`    ${line}`, "36", color));
+      } else output.push(paint(`    ${line}`, palette.code, color));
       continue;
     }
     if (marker) {
       flush();
       fence = marker[1]!;
-      output.push(paint(`  ── ${marker[2]!.trim() || "code"} ──`, "90", color));
+      output.push(
+        paint(`  ── ${marker[2]!.trim() || "code"} ──`, palette.muted, color),
+      );
     } else if (!line.trim()) {
       flush();
       if (output.at(-1) !== "") output.push("");
@@ -98,7 +118,7 @@ export function renderMarkdown(
       output.push(
         paint(
           wrapText(line.replace(/^#{1,6}\s+/, ""), width, "  "),
-          "1;36",
+          palette.strong,
           color,
         ),
       );
@@ -120,14 +140,14 @@ export function renderMarkdown(
       output.push(
         paint(
           wrapText(inline(line.replace(/^>\s?/, ""), false), width, "  │ "),
-          "90",
+          palette.muted,
           color,
         ),
       );
     } else if (/^(?:---+|\*\*\*+)\s*$/.test(line)) {
       flush();
       output.push(
-        paint(`  ${"─".repeat(Math.max(4, width - 4))}`, "90", color),
+        paint(`  ${"─".repeat(Math.max(4, width - 4))}`, palette.muted, color),
       );
     } else paragraph.push(line.trim());
   }

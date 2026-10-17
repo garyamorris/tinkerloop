@@ -9,7 +9,9 @@ npm run check
 ```
 
 Prefer small functions, descriptive names, and comments explaining why a step
-exists. Keep runtime dependencies at zero. If you change behavior, update the
+exists. Follow the [voice notes](docs/assets/README.md): call things what they
+are (the model *requests* a tool; your code *runs* it), never present the
+model's words as Tinkerloop's, and keep terminal output to the shared palette. Keep runtime dependencies at zero. If you change behavior, update the
 relevant lesson and documentation as well as the final CLI. Intermediate stages
 intentionally repeat a little conversation logic so their changes are visible.
 

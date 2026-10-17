@@ -83,10 +83,10 @@ test("closing leaves the transcript in normal scrollback, but never a typed key"
   const key = ui.screen.ask("API key", "Hidden input", "", signal, true);
   ui.input.write("fixture-secret\r");
   await key;
-  ui.screen.write("  tinkerloop\n  The answer.\n");
+  ui.screen.write("  model\n  The answer.\n");
   ui.screen.close();
   const after = ui.text().split("\x1b[?1049l")[1]!;
-  assert.match(after, /tinkerloop\n {2}The answer\./);
+  assert.match(after, /model\n {2}The answer\./);
   assert.doesNotMatch(ui.text(), /fixture-secret/);
 });
 

@@ -15,6 +15,8 @@ user: What did I just tell you?
 ```
 
 The harness remembers by resending the conversation. Nothing is saved to disk.
+Watch the `↻` lines in the transcript: the first request sends one message, the
+second sends three.
 The connector also resends the provider's original assistant blocks so required
 reasoning metadata remains intact. You do not need to interpret that metadata.
 
@@ -22,4 +24,4 @@ reasoning metadata remains intact. You do not need to interpret that metadata.
 the follow-up. Then restore the history and compare the answers. Longer history
 uses more input tokens; memory has a cost.
 
-Next: [one tool round trip](../03-one-tool/README.md).
+Next: [3. Give the model a tool](../03-one-tool/README.md).

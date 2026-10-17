@@ -1,7 +1,7 @@
 {
   "name": "tinkerloop",
   "version": "0.1.0",
-  "description": "A tiny coding harness, explained from the ground up.",
+  "description": "Learn how coding agents work by building the loop.",
   "private": true,
   "type": "module",
   "license": "MIT",

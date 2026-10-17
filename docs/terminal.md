@@ -8,8 +8,8 @@ prints the transcript so you can scroll back through it. Pass `--plain` for a
 normal scrolling transcript instead. Both views use native Node
 APIs and ANSI sequences, with no UI framework or runtime dependency.
 
-The CLI and all lessons share a branded header, user/assistant sections, readable
-basic Markdown, and token summaries. Headings, bold text, inline code, links,
+The CLI and all lessons share the same header, transcript, readable basic
+Markdown, and token summaries. Headings, bold text, inline code, links,
 lists, quotes, and fenced code blocks are supported. Code indentation is
 preserved; the viewport wraps long lines without changing their contents. This is a small Markdown subset rather
 than a complete CommonMark implementation or syntax highlighter.
@@ -17,25 +17,46 @@ than a complete CommonMark implementation or syntax highlighter.
 A full-screen snapshot might look like this. The numbers are illustrative:
 
 ```text
-  <> Tinkerloop · openai · your-model
-  ~/projects/my-app
+  ↻ Tinkerloop
+  openai · your-model · ~/projects/my-app
   ────────────────────────────────────────────────────────────────────────
   you
   Read app.ts and explain it.
+
+  ↻ request 1/10 · 1 message sent
+  ↳ reply · 1 tool call · 0.9s
   → read_file app.ts
   ✓ read_file app.ts · 3 ms
+  ↻ request 2/10 · 3 messages sent
+  ↳ reply · answer · 1.4s
 
-  tinkerloop
+  model
   This file defines the application entry point.
 
   ────────────────────────────────────────────────────────────────────────
   Last · in 1,420 · out 86 · cache read 1,024 · write —
   Context · 1,420 tokens · 4 messages
   Session · 2 requests · in 2,300 · out 110
-  Ready
+  Ready · 1 tool result · 4 tools available
   ›
   Enter send · ↑/↓ history · PgUp/PgDn scroll · Ctrl+C quit
 ```
+
+## Reading the transcript
+
+The transcript narrates the loop, one line per step:
+
+| Line | Meaning |
+| --- | --- |
+| `↻ request 2/10 · 3 messages sent` | One trip around the loop. The harness sends the whole history to the model; this is the second request of the turn, out of at most ten. |
+| `↳ reply · 1 tool call` | What came back: an answer, tool calls, or an incomplete reply. The scrolling view adds token counts here; full-screen mode keeps them in the footer. |
+| `→ read_file app.ts` | Your code runs a tool the model asked for. |
+| `✓ read_file app.ts · 3 ms` | The tool's result, now added to the history. `✗` marks an error, including a denied approval. |
+
+Colours follow the same idea. The harness (this program) is cyan, you are green,
+and the model is magenta. The model's text is labelled `model`, not
+`Tinkerloop`, because the harness only carries it. Set `NO_COLOR` to turn
+colours off.
 
 Writes and commands still show their complete proposal and need approval. Tool
 status rows show the requested filename or command, success/failure, and elapsed

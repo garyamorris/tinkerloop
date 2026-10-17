@@ -1,50 +1,144 @@
-# Tinkerloop
+<p align="center">
+  <img src="docs/assets/mark.svg" width="88" height="88" alt="">
+</p>
 
-**A tiny coding harness, explained from the ground up.**
+<h1 align="center">Tinkerloop</h1>
 
-[![CI](https://github.com/garyamorris/tinkerloop/actions/workflows/ci.yml/badge.svg)](https://github.com/garyamorris/tinkerloop/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <strong>Learn how coding agents work by building the loop.</strong>
+</p>
 
-Build your own coding agent by understanding the pieces: a model connection,
-conversation history, tools, an execution loop, and a terminal interface.
-Tinkerloop is a working TypeScript CLI and a sequence of eight runnable lessons.
-It assumes basic TypeScript knowledge and no previous agent-building experience.
+<p align="center">
+  <a href="https://github.com/garyamorris/tinkerloop/actions/workflows/ci.yml"><img src="https://github.com/garyamorris/tinkerloop/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
 
-There is no agent framework and there are **zero runtime dependencies**. Model
-connectors use `fetch`; files, processes, and terminal input use Node's built-in
-APIs. The [core loop](src/agent.ts) is small enough to read in one sitting.
+A coding agent is a loop. Your program sends the conversation to a model. The
+model replies with an answer, or with a request to use a tool. Your program runs
+the tool, adds the result to the conversation, and asks again.
 
-The full-screen terminal has a fixed header, scrollable conversation, input line,
-and live input/output/cache token counts. It renders basic Markdown and code,
-shows tool activity, and asks before changes. `/usage` shows session totals;
-`/context` inspects conversation size. [See the terminal guide](docs/terminal.md).
+Tinkerloop is that loop in plain TypeScript: eight short lessons that build it
+one piece at a time, and a small command-line agent you can use on real code.
+No framework, no runtime dependencies, and you can start without an API key.
+It assumes basic TypeScript and no experience building agents.
 
-## Try it
+## The whole idea
 
-You need **Node.js 24+**, npm, and access to a tool-capable model. Real API calls
-may cost money. Every lesson supports OpenAI, Anthropic, Gemini, and a configurable
-OpenAI-compatible endpoint. See [provider setup](docs/providers.md).
+```ts
+// The heart of src/agent.ts, without its safety checks.
+for (let step = 0; step < maxSteps; step++) {
+  const reply = await connector.complete({ systemPrompt, messages, tools });
+  messages.push(reply.message); // the reply joins the history
+  if (reply.message.toolCalls.length === 0) return "complete"; // an answer ends the turn
+  for (const call of reply.message.toolCalls) {
+    messages.push(await execute(call)); // your code runs the tool, not the model
+  }
+}
+return "limit"; // stop instead of looping forever
+```
 
-**No API key yet?** Add `--provider human` to any lesson or the CLI and *you* play
-the model. Each request shows exactly what an API would receive, and you type
-the reply: an answer, or a tool request such as `read_file {"path": "sum.js"}`.
-It is free, works offline, and is the fastest way to feel what the harness does.
+Everything else in this repository exists to make those lines useful and safe:
+connectors that speak each provider's format, tools that stay inside a folder,
+approvals before anything changes, and a terminal that shows each step.
+The [real loop](src/agent.ts) is under 100 lines.
+
+## Start without an API key
+
+You need Node.js 24 or later.
 
 ```sh
 git clone https://github.com/garyamorris/tinkerloop.git
 cd tinkerloop
 npm ci
-npm run dev
+npm run lesson:1 -- --provider human
 ```
 
-**Just run it:** when settings are missing, Tinkerloop asks you to choose a
-provider and enter a model ID. Full-screen mode also accepts a hidden API key
-for this session. Arrow keys choose, Enter confirms, and Ctrl+C quits. No
-settings or keys are saved automatically. The same setup works in every lesson.
+`--provider human` makes **you** the model. Each request shows exactly what a
+model would receive, and you type the reply: an answer, or a tool request such
+as `read_file {"path": "sum.js"}`. It is free, works offline, and is the fastest
+way to see what the harness does and does not do.
 
-To skip those questions on future runs, copy `.env.example` to `.env.local`
-(`cp .env.example .env.local` on macOS/Linux, or
-`Copy-Item .env.example .env.local` in PowerShell). Edit the copy:
+When you have an API key, run `npm run lesson:1` and choose a provider. OpenAI,
+Anthropic, Gemini, and any OpenAI-compatible endpoint work in every lesson; see
+[provider setup](docs/providers.md). Real API calls may cost money.
+
+## Eight lessons
+
+| Lesson | You add | Run |
+| --- | --- | --- |
+| [1. Make a model call](lessons/01-model-call/README.md) | One request, one reply | `npm run lesson:1` |
+| [2. Remember a conversation](lessons/02-conversation/README.md) | History sent with every request | `npm run lesson:2` |
+| [3. Give the model a tool](lessons/03-one-tool/README.md) | One tool request and its result | `npm run lesson:3` |
+| [4. Build the loop](lessons/04-the-loop/README.md) | Repeat until the model answers | `npm run lesson:4` |
+| [5. Ask before changing files](lessons/05-approvals/README.md) | File writes with your approval | `npm run lesson:5` |
+| [6. Check work with commands](lessons/06-commands/README.md) | Command output as evidence | `npm run lesson:6` |
+| [7. Wrap the loop in a chat](lessons/07-chat/README.md) | An outer loop of your messages | `npm run lesson:7` |
+| [8. Read the complete CLI](lessons/08-the-cli/README.md) | Cancellation, errors, and token counts | `npm run lesson:8` |
+
+Each lesson is one short file you can read top to bottom. The
+[lesson guide](lessons/README.md) explains the shared startup code, and the
+[glossary](docs/glossary.md) defines every term. Pass the same options to any
+lesson:
+
+```sh
+npm run lesson:3 -- --provider anthropic --model YOUR_MODEL_ID
+npm run lesson:4 -- --cwd examples/tiny-project --trace traces
+```
+
+## Reading the terminal
+
+The transcript narrates the loop as it runs:
+
+```text
+  you
+  Fix sum.js and run the tests.
+
+  ↻ request 1/10 · 1 message sent
+  ↳ reply · 1 tool call
+  → read_file sum.js
+  ✓ read_file sum.js · 2 ms
+  ↻ request 2/10 · 3 messages sent
+  ↳ reply · answer
+
+  model
+  The loop skipped the last number.
+```
+
+`↻` is one trip around the loop: the harness sends the whole history to the
+model. `↳` is what came back. `→` is a tool your code runs, and `✓` its result,
+which joins the history before the next `↻`. Text from the model is labelled
+`model`, because Tinkerloop only carries it. More in the
+[terminal guide](docs/terminal.md).
+
+## Use it on real code
+
+```sh
+# Ask one question, or start a chat with no task.
+npm run dev -- "Read README.md and explain this project in three sentences."
+npm run dev
+
+# Fix a deliberately broken practice project.
+npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run npm test."
+
+# Save the exact JSON sent to and received from the model, one file per request.
+npm run dev -- --trace traces "Read package.json and summarize it."
+```
+
+The [practice projects](examples/README.md) get harder, and include a
+prompt-injection exercise.
+
+**Review each proposed edit and command before typing `y`.** Reads happen
+automatically. File tools stay inside the selected workspace and exclude
+symlinks, `.git`, `node_modules`, and `.env` files except `.env.example`.
+Approved shell commands run with your user account's permissions: **this is not
+a sandbox**. Read the [local access explanation](docs/local-access.md) before
+using it on a project with sensitive data.
+
+When settings are missing, Tinkerloop asks for a provider and model, and
+full-screen mode accepts a hidden API key for that session. Nothing is saved.
+To skip the questions, copy `.env.example` to `.env.local`
+(`cp .env.example .env.local`, or `Copy-Item .env.example .env.local` in
+PowerShell) and edit the copy:
 
 ```dotenv
 TINKERLOOP_PROVIDER=openai
@@ -52,59 +146,9 @@ TINKERLOOP_MODEL=gpt-5.4-mini
 OPENAI_API_KEY=replace-with-your-own-key
 ```
 
-Use a model ID available to your API account. Setup offers `gpt-5.4-mini` as an
-OpenAI suggestion; press Enter to accept or type a different ID. Scripts still
-require an explicit model. Existing environment variables take precedence over `.env.local`.
-Only your chosen provider needs credentials. Keep `.env.local` private.
-
-```sh
-# Ask one question. In full-screen mode, press Enter after reviewing the answer.
-npm run dev -- "Read README.md and explain this project in three sentences."
-
-# Start a conversation. /usage and /context inspect it; /exit quits.
-npm run dev
-
-# Try a real coding task in a deliberately broken practice project.
-# See examples/README.md for harder ones, including a prompt-injection exercise.
-npm run dev -- --cwd examples/tiny-project "Read the code, fix sum.js, and run npm test."
-
-# Prefer a normal scrolling terminal transcript?
-npm run dev -- --plain
-
-# Save the exact JSON sent to and received from the model, one file per request.
-npm run dev -- --trace traces "Read package.json and summarize it."
-```
-
-**Review each proposed edit and command before typing `y`.** Reads happen
-automatically. File tools stay inside the selected workspace and exclude
-symlinks, `.git`, `node_modules`, and `.env` files except `.env.example`. Approved
-shell commands run with your user account's permissions: **this is not a sandbox**.
-Read the [local access explanation](docs/local-access.md) before using it on a
-project with sensitive data.
-
-## Learn it, one building block at a time
-
-| Lesson | What you add | Run |
-| --- | --- | --- |
-| [1. A model call](lessons/01-model-call/README.md) | Send a request and inspect a response | `npm run lesson:1` |
-| [2. Conversation history](lessons/02-conversation/README.md) | Remember an earlier exchange | `npm run lesson:2` |
-| [3. One tool round trip](lessons/03-one-tool/README.md) | Let the model request a local file read | `npm run lesson:3` |
-| [4. The execution loop](lessons/04-the-loop/README.md) | Repeat until the model answers | `npm run lesson:4` |
-| [5. Approvals](lessons/05-approvals/README.md) | Let the model propose file writes you approve | `npm run lesson:5` |
-| [6. Commands](lessons/06-commands/README.md) | Run tests so the model can check its work | `npm run lesson:6` |
-| [7. Chat](lessons/07-chat/README.md) | Wrap the loop in a conversation | `npm run lesson:7` |
-| [8. The complete CLI](lessons/08-the-cli/README.md) | Cancellation, errors, and telemetry | `npm run lesson:8` |
-
-You can pass the same options to every lesson:
-
-```sh
-npm run lesson:3 -- --provider anthropic --model YOUR_MODEL_ID "Read package.json."
-npm run lesson:4 -- --max-steps 4 --cwd examples/tiny-project
-```
-
-Each stage keeps its conversation logic in plain sight. The shared startup and
-connector code avoids maintaining four copies of every lesson. Start with the
-[lesson guide](lessons/README.md), which explains that shared layer.
+Use a model ID your account can access; only the chosen provider needs a key.
+Existing environment variables take precedence over `.env.local`, which is
+loaded from the directory you launch from. Keep it private.
 
 ## How it works
 
@@ -127,38 +171,36 @@ flowchart TD
 
 The model returns structured requests. **Your program executes the tools.**
 A failed or denied tool request is also a result, so the model can explain what
-happened. Ten model requests per user turn is the default upper bound.
+happened. Ten model requests per turn is the default limit.
 
-Read the [architecture walkthrough](docs/how-it-works.md) and
+Read the [architecture walkthrough](docs/how-it-works.md) and the
 [annotated tool transcript](docs/tool-transcript.md) for a full example.
 
-## Use the built command
+## Command reference
 
 ```sh
 npm run build
 node dist/cli.js --help
-node dist/cli.js --cwd examples/tiny-project "Explain the failing tests."
 
-# Optional: register this local clone as the tinkerloop command.
+# Optional: register this clone as the tinkerloop command.
 npm link
 tinkerloop --help
 ```
 
 This installs from your clone; the project is not published to the npm registry.
-Remove the local command later with `npm unlink --global tinkerloop`.
+Remove the command later with `npm unlink --global tinkerloop`.
 
 | Option | Purpose | Default |
 | --- | --- | --- |
 | `--provider` | `openai`, `anthropic`, `gemini`, `compatible`, or `human` (you type the replies) | Environment, then prompt; scripts default to `openai` |
 | `--model` | Provider's model ID | Environment, then prompt; required for scripts |
 | `--cwd` | Directory for local tools | Launch directory |
-| `--max-steps` | Maximum model requests per user turn | `10` |
+| `--max-steps` | Maximum model requests per turn | `10` |
 | `--context-window` | Optional model token limit, to show a context percentage | `TINKERLOOP_CONTEXT_WINDOW`; otherwise unset |
 | `--trace` | Folder for numbered request/response bodies (no headers or keys) | Off |
 | `--plain` | Use a scrolling transcript | Full-screen in a capable terminal |
 | `--help` | Show help without an API key | — |
 
-`.env.local` is loaded from the **launch directory**, not the `--cwd` target.
 In chat, Ctrl+C stops the current turn and keeps the conversation; at the
 prompt it quits. Without a terminal, pass a task and configure settings ahead of
 time: there are no setup questions, and writes and commands are denied. The
@@ -169,15 +211,15 @@ codes, and what each token counter means.
 
 | Code | Responsibility |
 | --- | --- |
-| [`src/types.ts`](src/types.ts) | Shared messages, requests, and tool contracts |
-| [`src/connectors/`](src/connectors/) | Explicit HTTP requests and response translation; [`human.ts`](src/connectors/human.ts) lets you play the model; [`trace.ts`](src/connectors/trace.ts) saves request bodies |
 | [`src/agent.ts`](src/agent.ts) | The model/tool loop |
+| [`src/types.ts`](src/types.ts) | Shared messages, requests, and tool contracts |
+| [`src/connectors/`](src/connectors/) | One file per provider's HTTP format; [`human.ts`](src/connectors/human.ts) lets you play the model; [`trace.ts`](src/connectors/trace.ts) saves request bodies |
 | [`src/tools.ts`](src/tools.ts), [`src/command.ts`](src/command.ts) | Local file and shell tools |
-| [`src/main.ts`](src/main.ts), [`src/terminal.ts`](src/terminal.ts) | Chat and human approvals |
+| [`src/main.ts`](src/main.ts), [`src/terminal.ts`](src/terminal.ts) | Chat and approvals |
 | [`src/setup.ts`](src/setup.ts), [`src/config.ts`](src/config.ts) | Guided startup and explicit configuration |
+| [`src/display.ts`](src/display.ts), [`src/render.ts`](src/render.ts), [`src/usage.ts`](src/usage.ts) | The transcript, its colours, and token accounting |
 | [`src/screen.ts`](src/screen.ts) | Optional full-screen view and keyboard input, using native Node APIs |
-| [`src/display.ts`](src/display.ts), [`src/render.ts`](src/render.ts), [`src/usage.ts`](src/usage.ts) | Terminal presentation and provider-independent token accounting |
-| [`lessons/`](lessons/) | Runnable stages with explanations and exercises |
+| [`lessons/`](lessons/README.md) | Runnable stages with explanations and exercises |
 | [`examples/`](examples/README.md) | Practice projects with deliberate bugs, plus a prompt-injection exercise |
 
 Next steps: [add a tool or connector](docs/extending.md),
@@ -194,6 +236,7 @@ CLI. Tests use synthetic HTTP responses and temporary workspaces, so they need
 no API keys and spend no model tokens. CI runs the checks on macOS, Linux, and
 Windows. The practice projects' intentionally failing tests are separate.
 
-The first version keeps conversations in memory. It does not include streaming,
-saved sessions, context compaction, MCP, or background jobs. The goal is code you
-can understand and change. MIT licensed; see [LICENSE](LICENSE).
+Tinkerloop keeps conversations in memory. It does not include streaming, saved
+sessions, context compaction, MCP, or background jobs; the
+[extension guide](docs/extending.md) turns several of these into exercises. The
+goal is code you can understand and change. MIT licensed; see [LICENSE](LICENSE).

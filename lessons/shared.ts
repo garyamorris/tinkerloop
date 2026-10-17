@@ -28,15 +28,22 @@ interface LessonContext {
 }
 
 interface LessonOptions {
+  // Shown in the banner, so each run says which step of the path it is.
+  number: number;
+  title: string;
+  goal: string;
   // Lessons that change files default to this folder unless --cwd is given.
   workspace?: string;
   // A chat lesson ends with /exit, so it has no "press Enter" pause.
   chat?: boolean;
 }
 
+// Lesson 8 is the complete CLI, which has its own banner.
+const lessonCount = 8;
+
 export async function lesson(
+  options: LessonOptions,
   run: (context: LessonContext) => Promise<void>,
-  options: LessonOptions = {},
 ): Promise<void> {
   const controller = new AbortController();
   const cancel = () => controller.abort(new Error("Cancelled."));
@@ -72,7 +79,10 @@ export async function lesson(
     config.cwd = await workspaceRoot(config.cwd);
     const display = createDisplay(config, { screen });
     input.setView(display);
-    display.banner("lesson");
+    display.banner({
+      title: `Lesson ${options.number} of ${lessonCount}: ${options.title}`,
+      goal: options.goal,
+    });
     await run({
       // With --provider human, the "model" is you, typing in this terminal.
       connector: createConnector(

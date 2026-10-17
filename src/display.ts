@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import type { Config } from "./config.js";
+import { tagline, type Config } from "./config.js";
 import type {
   Message,
   ModelReply,
@@ -10,7 +10,9 @@ import type {
 import {
   cleanText,
   literalText,
+  mark,
   paint,
+  palette,
   renderMarkdown,
   wrapText,
 } from "./render.js";
@@ -42,6 +44,9 @@ export const chatHelp = `Chat commands
   /clear    Clear conversation context; keep session usage totals
   /exit     Quit
 `;
+
+// Shown under the banner, so the first transcript explains how to read itself.
+const legend = `${mark} model request · ↳ its reply · → a tool your code runs`;
 
 function traceNote(folder: string): string {
   return `Tracing · request and response bodies go to ${folder}`;
@@ -86,8 +91,8 @@ export function createDisplay(
   const color = styled && !Object.hasOwn(env, "NO_COLOR");
   const width = () =>
     Math.max(24, Math.min(100, stdout.columns ?? stderr.columns ?? 80));
-  const muted = (text: string) => paint(text, "90", color);
-  const accent = (text: string) => paint(text, "1;36", color);
+  const muted = (text: string) => paint(text, palette.muted, color);
+  const accent = (text: string) => paint(text, palette.harness, color);
   const samples: (TokenUsage | undefined)[] = [];
   let lastUsage: TokenUsage | undefined;
   let requests = 0;
@@ -99,6 +104,9 @@ export function createDisplay(
   // Only our own style codes reach output. Untrusted values are cleaned first.
   const status = (text: string) =>
     stderr.write(`${muted(wrapText(cleanText(text), width(), "  "))}\n`);
+  // One line per step of the loop: the symbol in the harness colour, details in grey.
+  const step = (symbol: string, text: string) =>
+    stderr.write(`  ${accent(symbol)} ${muted(cleanText(text))}\n`);
 
   function usageLine(usage: TokenUsage | undefined): string {
     const short = (value: number | undefined) =>
@@ -108,6 +116,14 @@ export function createDisplay(
 
   function updateFooter(): void {
     if (!screen) return;
+    if (config.provider === "human") {
+      screen.setFooter([
+        "No token counts: you are the model, so no API reports usage",
+        `Context · ${counted(historySize, "message")}`,
+        `Session · ${counted(requests, "request")}`,
+      ]);
+      return;
+    }
     const { totals, reports } = summarizeUsage(samples);
     const input = lastUsage?.inputTokens;
     const measured =
@@ -135,103 +151,117 @@ export function createDisplay(
     }
     status(`Context · last response input: ${measured}`);
     status(
-      `${counted(messages.length, "history message")} · ${counted(messages.filter((message) => message.role === "tool").length, "tool result")} · ${toolCount} available tools`,
+      `${counted(messages.length, "history message")} · ${counted(messages.filter((message) => message.role === "tool").length, "tool result")} · ${counted(toolCount, "available tool")}`,
     );
     if (!config.contextWindow)
       status("Window size unset · set --context-window to show a percentage");
   }
 
   return {
-    prompt: styled ? `\n${accent("  you › ")}` : "\nYou > ",
-    modelPrompt: styled ? `\n${accent("  model › ")}` : "\nModel > ",
+    prompt: styled ? `\n${paint("  you › ", palette.you, color)}` : "\nYou > ",
+    modelPrompt: styled
+      ? `\n${paint("  model › ", palette.model, color)}`
+      : "\nModel > ",
     approvalPrompt: styled
       ? `${accent("  Allow this action?")} [y/N] `
       : "Allow this action? [y/N] ",
-    banner(title?: string): void {
+    // A lesson names itself and says what it adds; the CLI shows the tagline.
+    banner(lesson?: { title: string; goal: string }): void {
       const home = homedir();
       const workspace =
         config.cwd.startsWith(home + "/") || config.cwd.startsWith(home + "\\")
           ? "~" + config.cwd.slice(home.length)
           : config.cwd;
+      const name = `${mark} Tinkerloop${lesson ? ` · ${lesson.title}` : ""}`;
+      const model =
+        config.provider === "human"
+          ? "you are the model"
+          : `${config.provider} · ${config.model}`;
+      const where = `${model} · ${workspace}`;
+      const intro = lesson?.goal ?? tagline;
       if (screen) {
-        screen.setHeader([
-          `<> Tinkerloop${title ? ` / ${title}` : ""} · ${config.provider} · ${config.model}`,
-          workspace,
-        ]);
+        screen.setHeader([name, where]);
         screen.write(
-          `\n${accent("  A tiny coding harness, explained from the ground up.")}\n\n`,
+          `\n${wrapText(cleanText(intro), width(), "  ").split("\n").map(accent).join("\n")}\n\n`,
         );
-        this.note(
-          title
-            ? "Follow the lesson below. Token usage appears in the footer."
-            : "Describe a task to get started. /help lists chat commands.",
-        );
+        this.note(legend);
+        if (!lesson)
+          this.note("Describe a task to start. /help lists commands.");
         if (config.trace) this.note(traceNote(config.trace));
         screen.write("\n");
         updateFooter();
         return;
       }
-      stderr.write(
-        `\n${accent("  <> Tinkerloop")}${title ? muted(` / ${cleanText(title)}`) : ""}\n`,
-      );
-      status("A tiny coding harness, explained from the ground up.");
-      status(`${config.provider} · ${config.model}`);
-      status(workspace);
+      stderr.write(`\n${accent(`  ${cleanText(name)}`)}\n`);
+      status(intro);
+      status(where);
       if (config.trace) status(traceNote(config.trace));
-      status(
-        title
-          ? "Token usage follows each response · --help for options"
-          : "/help · /usage · /context · /clear · /exit",
-      );
+      status(legend);
+      if (!lesson) status("/help · /usage · /context · /clear · /exit");
       stderr.write("\n");
     },
     user(text: string): void {
       stderr.write(
-        `${paint("  you", "1;32", color)}\n${wrapText(cleanText(text), width(), "  ")}\n\n`,
+        `${paint("  you", palette.you, color)}\n${wrapText(cleanText(text), width(), "  ")}\n\n`,
       );
     },
-    request(step: number, limit: number, messages?: Message[]): void {
+    // Each model request is one trip around the loop, and the whole history
+    // goes with it every time, so the line says how many messages were sent.
+    request(stepNumber: number, limit: number, messages?: Message[]): void {
       if (messages) historySize = messages.length;
       requests++;
       requestStarted = performance.now();
+      const sent = messages
+        ? ` · ${counted(messages.length, "message")} sent`
+        : "";
+      step(mark, `request ${stepNumber}/${limit}${sent}`);
       if (screen) {
-        screen.setStatus(`Thinking · request ${step}/${limit} · Ctrl+C cancel`);
+        screen.setStatus(
+          `Waiting for the model · request ${stepNumber}/${limit} · Ctrl+C cancels`,
+        );
         updateFooter();
-        return;
       }
-      status(`thinking · request ${step}/${limit}`);
     },
     reply(reply: ModelReply): void {
       samples.push(reply.usage);
       lastUsage = reply.usage;
+      const calls = reply.message.toolCalls.length;
+      const kind =
+        reply.stopReason === "incomplete"
+          ? "incomplete"
+          : calls
+            ? counted(calls, "tool call")
+            : "answer";
+      const seconds = `${((performance.now() - requestStarted) / 1000).toFixed(1)}s`;
+      // Full-screen mode keeps token counts in its footer. You report none.
+      const tokens =
+        screen || config.provider === "human"
+          ? ""
+          : reply.usage
+            ? ` · ${usageLine(reply.usage)}`
+            : " · usage not reported";
+      step("↳", `reply · ${kind} · ${seconds}${tokens}`);
       if (reply.message.content) {
+        // Label the text as the model's: the harness only carries it.
         if (styled)
           stdout.write(
-            `\n${accent("  tinkerloop")}\n${renderMarkdown(reply.message.content, width(), color)}\n\n`,
+            `\n${paint("  model", palette.model, color)}\n${renderMarkdown(reply.message.content, width(), color)}\n\n`,
           );
         else stdout.write(`${cleanText(reply.message.content)}\n`);
       }
       if (screen) {
-        screen.setStatus(
-          `Response · ${((performance.now() - requestStarted) / 1000).toFixed(1)}s${reply.stopReason === "incomplete" ? " · incomplete" : ""}`,
-        );
+        screen.setStatus(`Reply · ${kind} · ${seconds}`);
         updateFooter();
-        return;
       }
-      status(
-        `tokens · ${usageLine(reply.usage)} · ${((performance.now() - requestStarted) / 1000).toFixed(1)}s${reply.stopReason === "incomplete" ? " · incomplete" : ""}`,
-      );
-      if (!reply.usage && config.provider !== "human")
-        status("Token usage was not reported by this provider.");
     },
     tool(call: ToolCall): void {
-      status(`→ ${call.name} ${toolTarget(call)}`.trimEnd());
-      screen?.setStatus(`Running ${call.name} · Ctrl+C cancel`);
+      step("→", `${call.name} ${toolTarget(call)}`.trimEnd());
+      screen?.setStatus(`Running ${call.name} · Ctrl+C cancels`);
     },
     toolResult(result: ToolResult, call: ToolCall, durationMs: number): void {
       const name = `${call.name} ${toolTarget(call)}`.trimEnd();
       stderr.write(
-        `${paint(`  ${result.isError ? "✗" : "✓"} ${cleanText(name)}`, result.isError ? "31" : "32", color)}${muted(` · ${Math.round(durationMs)} ms`)}\n`,
+        `${paint(`  ${result.isError ? "✗" : "✓"} ${cleanText(name)}`, result.isError ? palette.error : palette.ok, color)}${muted(` · ${Math.round(durationMs)} ms`)}\n`,
       );
       if (
         call.name === "run_command" &&
@@ -309,19 +339,29 @@ export function createDisplay(
       ).length;
       if (screen) {
         screen.setStatus(
-          `Ready · ${counted(toolsInHistory, "tool result")} · ${toolCount} tools available`,
+          `Ready · ${counted(toolsInHistory, "tool result")} · ${counted(toolCount, "tool")} available`,
         );
         updateFooter();
         return;
       }
-      const { totals, reports } = summarizeUsage(samples);
-      const complete =
-        (reports.inputTokens ?? 0) === requests &&
-        (reports.outputTokens ?? 0) === requests;
+      // A short summary per turn; /usage and /context have the details.
       status(
-        `session · ${counted(requests, "request")} · ${usageLine(totals)}${complete ? "" : " · partial usage"}`,
+        `turn finished · ${counted(messages.length, "message")} in history · ${counted(toolsInHistory, "tool result")}`,
       );
-      context(messages, toolCount);
+      const { totals, reports } = summarizeUsage(samples);
+      if (reports.inputTokens || reports.outputTokens) {
+        const complete =
+          (reports.inputTokens ?? 0) === requests &&
+          (reports.outputTokens ?? 0) === requests;
+        status(
+          `session · ${counted(requests, "request")} · ${usageLine(totals)}${complete ? "" : " · partial usage"}`,
+        );
+      }
+      const input = lastUsage?.inputTokens;
+      if (input !== undefined && config.contextWindow)
+        status(
+          `context · ${tokenText(input)} tokens · ${((100 * input) / config.contextWindow).toFixed(1)}% of configured window`,
+        );
       stderr.write("\n");
     },
     clearContext(): void {

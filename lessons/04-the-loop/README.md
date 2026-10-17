@@ -12,6 +12,9 @@ Compare [index.ts](index.ts) with lesson 3. The main change is repetition:
 3. If there are no tool calls, the answer finishes this turn.
 4. Otherwise execute each tool, append its result, and repeat.
 
+Each `↻ request` line in the transcript is one pass through this `for` loop,
+and each `→` line is a tool your code runs inside it.
+
 The available tools are still read-only: `list_files` and `read_file`. This stage
 can investigate code but cannot change it. The loop has a request limit so a
 model cannot keep calling tools indefinitely. Truncated provider responses also
@@ -22,4 +25,4 @@ the limit. That means the task is unfinished, not that the harness succeeded.
 Follow each mutation of `messages` to see exactly why a subsequent request is
 needed.
 
-Next: [ask before changing anything](../05-approvals/README.md).
+Next: [5. Ask before changing files](../05-approvals/README.md).

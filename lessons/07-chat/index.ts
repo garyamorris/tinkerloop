@@ -6,6 +6,13 @@ import { lesson } from "../shared.js";
 // New in this lesson: an outer loop. Each message you type starts a turn, and
 // each turn runs lesson 6's inner model/tool loop over the same history.
 await lesson(
+  {
+    number: 7,
+    title: "Wrap the loop in a chat",
+    goal: "Each message you type starts a turn of the inner model/tool loop.",
+    workspace: "examples/tiny-project",
+    chat: true,
+  },
   async ({
     connector,
     config,
@@ -52,5 +59,4 @@ await lesson(
       prompt = await read();
     }
   },
-  { workspace: "examples/tiny-project", chat: true },
 );

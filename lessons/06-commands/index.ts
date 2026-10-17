@@ -5,6 +5,12 @@ import { lesson } from "../shared.js";
 
 // New in this lesson: run_command, and the loop moves into src/agent.ts.
 await lesson(
+  {
+    number: 6,
+    title: "Check work with commands",
+    goal: "Command output is evidence: the model runs the tests and reads what failed.",
+    workspace: "examples/tiny-project",
+  },
   async ({ connector, config, systemPrompt, signal, display, approve }) => {
     const messages: Message[] = [
       {
@@ -43,5 +49,4 @@ await lesson(
     if (status === "incomplete")
       throw new Error("The model response was incomplete.");
   },
-  { workspace: "examples/tiny-project" },
 );
