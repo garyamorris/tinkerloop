@@ -67,7 +67,9 @@ export function wrapText(
 function inline(text: string, color: boolean): string {
   return text
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1 ($2)")
-    .replace(/`([^`]+)`/g, (_match, code: string) => paint(code, palette.code, color))
+    .replace(/`([^`]+)`/g, (_match, code: string) =>
+      paint(code, palette.code, color),
+    )
     .replace(/\*\*([^*]+)\*\*/g, (_match, bold: string) =>
       paint(bold, palette.strong, color),
     );
