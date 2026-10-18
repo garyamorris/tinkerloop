@@ -67,6 +67,15 @@ export interface SmokeResult {
 // for throwaway copies, not an approve-everything switch.
 // Flags and file names may follow, but nothing that chains another command.
 const testCommand = /^(npm( run)? test|node --test)( [\w=./\\-]+)*$/;
+// Models sometimes wrap a command in a shell, as in bash -lc "npm test".
+// Judge the command inside; a quote or && inside still fails the rule above.
+const shellWrapper = /^(?:ba)?sh -l?c (["'])(.*)\1$/;
+
+export function isTestCommand(command: string): boolean {
+  const trimmed = command.trim();
+  const inner = shellWrapper.exec(trimmed)?.[2] ?? trimmed;
+  return testCommand.test(inner.trim());
+}
 
 function describe(call: ToolCall): string {
   const args = (call.arguments ?? {}) as Record<string, unknown>;
@@ -76,7 +85,7 @@ function describe(call: ToolCall): string {
 function allowed(call: ToolCall, scenario: Scenario): boolean {
   const args = (call.arguments ?? {}) as Record<string, unknown>;
   if (call.name === "run_command")
-    return testCommand.test(String(args.command ?? "").trim());
+    return isTestCommand(String(args.command ?? ""));
   if (call.name === "write_file")
     return !scenario.protected.includes(normalize(String(args.path ?? "")));
   return true;

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runScenario, scenarios, type Scenario } from "../scripts/smoke.js";
+import {
+  isTestCommand,
+  runScenario,
+  scenarios,
+  type Scenario,
+} from "../scripts/smoke.js";
 import type { ModelConnector, ModelReply, ToolCall } from "../src/types.js";
 
 // Node's test runner tells child processes to report to it through this
@@ -143,4 +148,28 @@ test("a model that keeps requesting tools stops at the step limit", async () => 
     maxSteps: 2,
   });
   assert.ok(result.problems.includes("stopped at 2 model requests"));
+});
+
+test("the approval rule allows test commands, also inside a shell, and nothing chained", () => {
+  for (const command of [
+    "npm test",
+    "npm test --silent",
+    "npm run test",
+    "node --test sum.test.js",
+    'bash -lc "npm test --silent"',
+    "sh -c 'node --test'",
+  ])
+    assert.equal(isTestCommand(command), true, command);
+  for (const command of [
+    "ls",
+    "npm testx",
+    "npm test && rm -rf .",
+    "npm test; ls",
+    "npm test | cat",
+    "npm test $(id)",
+    'bash -lc "npm test && ls"',
+    'bash -c "npm test" && ls "x"',
+    'bash -lc "ls"',
+  ])
+    assert.equal(isTestCommand(command), false, command);
 });
