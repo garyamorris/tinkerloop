@@ -43,7 +43,7 @@ passed all checks on all three operating systems.
 | Full-screen startup | CLI and lesson 1 launched without provider/model flags; provider selection and model prompt exercised |
 | Full-screen coding task | Real OpenAI read/edit/test loop in a temporary project, scrollable file approval, command approval, and live footer |
 | Missing terminal input | Real model's requested write was denied and the proposed file was not created |
-| Anthropic, Gemini, compatible connector | HTTP fixtures only; their credentials were not available for live checks |
+| Anthropic and Gemini connectors | HTTP fixtures only; their credentials were not available for live checks |
 
 The coding task ran in a temporary copy of `examples/tiny-project`, leaving the
 repository exercise intentionally broken. Provider credentials stayed in the
@@ -102,3 +102,20 @@ driving the real programs through a pseudo-terminal:
 
 Long command output was checked with automated tests rather than live: stdout
 and stderr each keep their start and end, and the result remains valid JSON.
+
+## Compatible connector, live
+
+Checked on 18 October 2026, with OpenAI's own Chat Completions endpoint
+(`TINKERLOOP_BASE_URL=https://api.openai.com/v1`) as the compatible server:
+
+| Capability | Verification |
+| --- | --- |
+| Lessons 1–4 | Single call, remembered name, file tool round trip, and repeated tool use, with assistant `tool_calls` replayed in history |
+| Complete CLI | `gpt-5.4-nano` and `gpt-5-nano` each fixed `word-count` in 2 of 2 runs without changing the tests; every write and command was approved |
+| `reasoning_effort` | Sent as requested; `low` on `gpt-5-nano` used 192 reasoning tokens where the default used about 2,600. `gpt-5.4-nano` rejects it alongside function tools on this endpoint, and the error says so |
+| Usage | Cache reads reported; cache writes shown as not reported, because Chat Completions omits them |
+| Denials, chat, errors | Denied actions were not retried and files stayed unchanged; a follow-up remembered a name and `/clear` forgot it; an unknown model showed `model_not_found` |
+| Injection demo | The hidden command was not proposed |
+
+This shows the connector speaks Chat Completions as OpenAI implements it. Other
+servers differ in tool-call support and finish reasons; check yours.
