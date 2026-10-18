@@ -3,29 +3,51 @@
 Each release is a fixed version of the lesson path, so a course or a blog post
 can point at one and stay accurate while `main` moves on.
 
-## Unreleased
+## 0.3.0
 
-Fixes from running every lesson and the CLI against the live OpenAI API.
+Every lesson and the CLI were run against live APIs for the first time. This
+release fixes what those runs found, and lets you choose how much a model
+reasons.
+
+### Fixes
 
 - **Long command output keeps its end.** Output over 20,000 characters used to
-  keep only its start, so the model lost the error on stderr and the test
-  summary. Now each stream keeps its start and end, a marker counts what was
-  left out, and the result stays valid JSON.
+  keep only its start, so a large failing test run hid the error on stderr and
+  the summary from the model. Now each stream keeps its start and end, a marker
+  counts what was left out, and the result stays valid JSON.
 - **Models act instead of asking first.** The system prompts said each write
   "requires the user's approval", and some models (such as `gpt-5-nano`) then
   replied with a plan and asked for permission in chat, calling no tool. The
   CLI and lesson 5 now say the user's message is the request. Every write and
   command still stops at the approval prompt.
-- **`--reasoning-effort`** (or `TINKERLOOP_REASONING_EFFORT`) sets the reasoning
-  level for the openai and compatible providers.
-- **Reasoning tokens in the transcript.** Usage lines show the reasoning share
-  of output, such as `out 2,779 (reasoning 1,792)`.
-- **Readable API errors.** A failed request shows the provider's message and
-  code instead of its raw JSON body.
 - **An unanswered message leaves the history.** After Ctrl+C or an error with
   no reply, the chat removes that message, so it is not sent again with the
   next one.
+- **Readable API errors.** A failed request shows the provider's code and
+  message instead of its raw JSON body.
+
+### New
+
+- **`--reasoning-effort`** (or `TINKERLOOP_REASONING_EFFORT`) sets the reasoning
+  level for the openai and compatible providers. Some models, such as
+  `gpt-5.4-mini`, default to no reasoning.
+- **Reasoning tokens in the transcript.** Usage lines show the reasoning share
+  of output, such as `out 2,779 (reasoning 1,792)`.
 - **Node.js 22 is supported**, and CI checks it on Linux.
+
+### Upgrading from 0.2.0
+
+- Nothing to change: flags, environment variables, and lesson commands are the
+  same.
+- A long command result now marks its middle with
+  `[… N characters omitted …]` instead of ending with `[truncated]`.
+
+### Known gaps
+
+The OpenAI and OpenAI-compatible connectors were checked against live APIs.
+The Anthropic and Gemini connectors, including Anthropic's caching request, are
+still covered only by tests against recorded HTTP bodies. See
+[verification](docs/verification.md).
 
 ## 0.2.0
 
