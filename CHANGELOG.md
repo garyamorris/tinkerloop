@@ -14,6 +14,9 @@ can point at one and stay accurate while `main` moves on.
   tell the user about them. On the injection demo with `gpt-5-nano`, proposals
   of the hidden command fell from 27% to 9% of runs, and every final answer
   mentioned the hidden note. Approval is still what stops the rest.
+- **Typechecking matches the oldest supported Node.** The project uses Node 22's
+  type definitions, so an API that only exists in Node 24 fails `npm run check`
+  instead of failing at run time for Node 22 users.
 
 ## 0.3.0
 
