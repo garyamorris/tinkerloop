@@ -3,7 +3,7 @@
 | Symptom | What to check |
 | --- | --- |
 | No API key, or want to learn without spending money | Run with `--provider human` and type the model's replies yourself. |
-| Node syntax or engine error | Run `node --version`; use Node 24 or later. |
+| Node syntax or engine error | Run `node --version`; use Node 22 or later. |
 | Setup appears every run | Answers are session-only. Set `TINKERLOOP_PROVIDER`, `TINKERLOOP_MODEL`, and your key in the environment or ignored `.env.local` to skip questions. |
 | No full-screen view | It needs terminal stdin, stdout, and stderr, without `--plain` or `TERM=dumb`. Pipes use ordinary output. |
 | Screen says to enlarge the terminal | Resize to at least 30 columns by 12 rows, or restart with `--plain`. |
@@ -23,7 +23,7 @@
 | File path rejected | Check workspace boundaries, symlinks, excluded names, and the 20,000-byte file limit. |
 | Command timed out | The fixed limit is 30 seconds. Run longer work yourself or simplify the command. |
 | Command syntax fails on Windows | The default command shell is generally `cmd.exe`, not PowerShell. Ask for Windows commands, use a portable `node -e` command, or run Tinkerloop inside WSL. |
-| Tool output is truncated | Ask for a smaller result. Files larger than 20,000 bytes require an approved command to inspect a section. |
+| Tool output is truncated | Command output keeps its start and end; ask for a smaller result, such as only the failing tests. Files larger than 20,000 bytes require an approved command to inspect a section. |
 
 `npm run check` tests the application without calling a provider. It does not
 prove that your particular API key, model, or compatible server works. The

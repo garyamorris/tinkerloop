@@ -30,9 +30,12 @@ What the CLI adds over lesson 7:
 
 - **Turn cancellation.** Ctrl+C during a turn stops that turn and keeps the
   conversation. `runAgent` already pairs every tool call with a result, so the
-  history is still valid to send. Ctrl+C at the prompt quits.
-- **Errors without losing the session.** A failed HTTP request reports the
-  error and returns to the prompt; `/clear` starts over.
+  history is still valid to send. If the model had not replied at all, your
+  message is taken back out, so it is not sent again with the next one. Ctrl+C
+  at the prompt quits.
+- **Errors without losing the session.** A failed HTTP request shows the
+  provider's error code and message, then returns to the prompt; `/clear`
+  starts over.
 - **Telemetry.** `/usage` shows session token totals and `/context` shows the
   last measured input size. The [terminal guide](../../docs/terminal.md)
   explains cache counters and the optional context-window setting.

@@ -181,6 +181,28 @@ test("compatible endpoints receive Chat Completions messages and their own key",
   });
 });
 
+test("a chosen reasoning effort reaches OpenAI and compatible requests, and none is sent by default", async () => {
+  const openai = await fixture("openai");
+  const http = httpFixture([openai[1], openai[1]]);
+  const request = { systemPrompt: "", messages: [], tools: [] };
+  await createOpenAIConnector("key", "model", http.fetchImpl).complete(request);
+  await createOpenAIConnector("key", "model", http.fetchImpl, "high").complete(
+    request,
+  );
+  assert.equal(Object.hasOwn(http.requests[0]!.body, "reasoning"), false);
+  assert.deepEqual(http.requests[1]!.body.reasoning, { effort: "high" });
+  const compatible = await fixture("compatible");
+  const chat = httpFixture([compatible[1]]);
+  await createCompatibleConnector(
+    "http://localhost/v1",
+    "",
+    "model",
+    chat.fetchImpl,
+    "low",
+  ).complete(request);
+  assert.equal(chat.requests[0]!.body.reasoning_effort, "low");
+});
+
 test("keyless compatible endpoints send no Authorization header and no empty tools field", async () => {
   const responses = await fixture("compatible");
   const http = httpFixture([responses[1]]);
@@ -251,6 +273,34 @@ test("HTTP failures redact credentials and malformed provider bodies fail clearl
     (error: unknown) => {
       assert.match(String(error), /HTTP 401/);
       assert.doesNotMatch(String(error), new RegExp(secret));
+      return true;
+    },
+  );
+  // A provider's JSON error shows its code and message, not the raw body.
+  const providerError: Fetch = async () =>
+    Response.json(
+      {
+        error: {
+          message: `The model does not exist. ${secret}`,
+          type: "invalid_request_error",
+          code: "model_not_found",
+        },
+      },
+      { status: 404 },
+    );
+  await assert.rejects(
+    postJson(
+      "https://example.invalid",
+      { Authorization: `Bearer ${secret}` },
+      {},
+      undefined,
+      providerError,
+    ),
+    (error: unknown) => {
+      assert.equal(
+        (error as Error).message,
+        "Model API returned HTTP 404: model_not_found: The model does not exist. [redacted]",
+      );
       return true;
     },
   );

@@ -3,6 +3,30 @@
 Each release is a fixed version of the lesson path, so a course or a blog post
 can point at one and stay accurate while `main` moves on.
 
+## Unreleased
+
+Fixes from running every lesson and the CLI against the live OpenAI API.
+
+- **Long command output keeps its end.** Output over 20,000 characters used to
+  keep only its start, so the model lost the error on stderr and the test
+  summary. Now each stream keeps its start and end, a marker counts what was
+  left out, and the result stays valid JSON.
+- **Models act instead of asking first.** The system prompts said each write
+  "requires the user's approval", and some models (such as `gpt-5-nano`) then
+  replied with a plan and asked for permission in chat, calling no tool. The
+  CLI and lesson 5 now say the user's message is the request. Every write and
+  command still stops at the approval prompt.
+- **`--reasoning-effort`** (or `TINKERLOOP_REASONING_EFFORT`) sets the reasoning
+  level for the openai and compatible providers.
+- **Reasoning tokens in the transcript.** Usage lines show the reasoning share
+  of output, such as `out 2,779 (reasoning 1,792)`.
+- **Readable API errors.** A failed request shows the provider's message and
+  code instead of its raw JSON body.
+- **An unanswered message leaves the history.** After Ctrl+C or an error with
+  no reply, the chat removes that message, so it is not sent again with the
+  next one.
+- **Node.js 22 is supported**, and CI checks it on Linux.
+
 ## 0.2.0
 
 The lessons grow from five to eight, you can learn without an API key, and the

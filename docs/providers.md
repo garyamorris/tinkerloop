@@ -36,6 +36,14 @@ npm run dev -- --provider openai --model gpt-5.4-mini "Read README.md."
 The adapter uses `POST /v1/responses`, function tools, explicit history, and
 encrypted reasoning content when returned. It sets `store: false` and caps
 output, including reasoning, at 16,000 tokens.
+
+Some models, such as `gpt-5.4-mini`, default to no reasoning. To see reasoning
+in the loop, choose a level with `--reasoning-effort` or
+`TINKERLOOP_REASONING_EFFORT`: `none`, `minimal`, `low`, `medium`, `high`, or
+`xhigh`. Each model supports only some levels, and the API says which when you
+pick another. The adapter sends it as `reasoning.effort`; the compatible adapter
+sends `reasoning_effort`. Anthropic and Gemini do not accept this setting.
+Reasoning tokens count as output, and the transcript shows their share.
 Read the [adapter](../src/connectors/openai.ts),
 [function calling guide](https://developers.openai.com/api/docs/guides/function-calling),
 and [example model documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini).

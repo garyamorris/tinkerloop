@@ -1,3 +1,4 @@
+import type { ReasoningEffort } from "../config.js";
 import type { ModelConnector } from "../types.js";
 import { readUsage } from "../usage.js";
 import {
@@ -16,6 +17,7 @@ export function createCompatibleConnector(
   apiKey: string,
   model: string,
   fetchImpl?: Fetch,
+  reasoningEffort?: ReasoningEffort,
 ): ModelConnector {
   return {
     async complete({ systemPrompt, messages, tools, signal }) {
@@ -39,6 +41,8 @@ export function createCompatibleConnector(
         {
           model,
           messages: history,
+          // Chat Completions spells this field differently from Responses.
+          ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
           ...(tools.length
             ? {
                 tools: tools.map((tool) => ({

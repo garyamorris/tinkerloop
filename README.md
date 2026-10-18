@@ -44,7 +44,7 @@ The [real loop](src/agent.ts) is under 100 lines.
 
 ## Start without an API key
 
-You need Node.js 24 or later.
+You need Node.js 22 or later.
 
 ```sh
 git clone https://github.com/garyamorris/tinkerloop.git

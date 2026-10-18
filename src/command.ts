@@ -29,24 +29,12 @@ export function runCommand(
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
-    let stdout = "";
-    let stderr = "";
+    const stdout = collector();
+    const stderr = collector();
     let timedOut = false;
     let forceKill: ReturnType<typeof setTimeout> | undefined;
-    const capture = (previous: string, chunk: string) => {
-      const limit = 20_000;
-      if (previous.endsWith("\n[truncated]")) return previous;
-      const next = previous + chunk;
-      return next.length > limit
-        ? next.slice(0, limit) + "\n[truncated]"
-        : next;
-    };
-    child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
-      stdout = capture(stdout, chunk);
-    });
-    child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
-      stderr = capture(stderr, chunk);
-    });
+    child.stdout.setEncoding("utf8").on("data", stdout.add);
+    child.stderr.setEncoding("utf8").on("data", stderr.add);
 
     function killTree(force = false): void {
       if (!child.pid) return;
@@ -88,7 +76,61 @@ export function runCommand(
     child.on("close", (exitCode, exitSignal) => {
       cleanup();
       if (signal?.aborted) reject(signal.reason);
-      else resolve({ exitCode, signal: exitSignal, timedOut, stdout, stderr });
+      else
+        resolve({
+          exitCode,
+          signal: exitSignal,
+          timedOut,
+          stdout: stdout.text(),
+          stderr: stderr.text(),
+        });
     });
   });
+}
+
+// Errors and test summaries usually come last, so long output keeps its start
+// and its end. The marker in the middle says how much was left out.
+function omission(count: number): string {
+  return `\n[… ${count.toLocaleString("en-US")} characters omitted …]\n`;
+}
+
+const omissionPattern = /\n\[… ([\d,]+) characters omitted …\]\n/g;
+
+// Shorten text to at most max characters by removing its middle.
+export function elide(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const keep = Math.max(0, max - omission(text.length).length);
+  const head = text.slice(0, Math.floor(keep / 2));
+  const tail = text.slice(text.length - Math.ceil(keep / 2));
+  // A marker inside the removed part already stands for more characters.
+  const removed = text.slice(head.length, text.length - tail.length);
+  let count = removed.length;
+  for (const match of removed.matchAll(omissionPattern))
+    count += Number(match[1]!.replaceAll(",", "")) - match[0].length;
+  return keep ? head + omission(count) + tail : omission(count).trim();
+}
+
+// Hold on to the start and the end of a stream as it arrives. A command that
+// prints gigabytes still uses a bounded amount of memory.
+function collector(limit = 1_000_000) {
+  let head = "";
+  let tail = "";
+  let omitted = 0;
+  return {
+    add(chunk: string): void {
+      const room = limit / 2 - head.length;
+      if (room > 0) {
+        head += chunk.slice(0, room);
+        chunk = chunk.slice(room);
+      }
+      tail += chunk;
+      if (tail.length > limit / 2) {
+        omitted += tail.length - limit / 2;
+        tail = tail.slice(-limit / 2);
+      }
+    },
+    text(): string {
+      return omitted ? head + omission(omitted) + tail : head + tail;
+    },
+  };
 }

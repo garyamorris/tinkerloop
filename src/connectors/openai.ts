@@ -1,3 +1,4 @@
+import type { ReasoningEffort } from "../config.js";
 import type { ModelConnector } from "../types.js";
 import { readUsage } from "../usage.js";
 import {
@@ -13,6 +14,7 @@ export function createOpenAIConnector(
   apiKey: string,
   model: string,
   fetchImpl?: Fetch,
+  reasoningEffort?: ReasoningEffort,
 ): ModelConnector {
   return {
     async complete({ systemPrompt, messages, tools, signal }) {
@@ -45,6 +47,10 @@ export function createOpenAIConnector(
           })),
           store: false,
           include: ["reasoning.encrypted_content"],
+          // Without a level, each model uses its default, which may be no reasoning.
+          ...(reasoningEffort
+            ? { reasoning: { effort: reasoningEffort } }
+            : {}),
           // Reasoning counts toward this limit, and write_file sends a whole file.
           max_output_tokens: 16_000,
         },

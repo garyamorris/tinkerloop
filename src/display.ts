@@ -67,7 +67,8 @@ export function createDisplay(
   config: Pick<
     Config,
     "provider" | "model" | "cwd" | "contextWindow" | "trace"
-  >,
+  > &
+    Partial<Pick<Config, "reasoningEffort">>,
   options: {
     stdout?: Output;
     stderr?: Output;
@@ -111,7 +112,11 @@ export function createDisplay(
   function usageLine(usage: TokenUsage | undefined): string {
     const short = (value: number | undefined) =>
       value === undefined ? "—" : tokenText(value);
-    return `in ${short(usage?.inputTokens)} · out ${short(usage?.outputTokens)} · cache read ${short(usage?.cacheReadTokens)} · write ${short(usage?.cacheWriteTokens)}`;
+    // Reasoning is part of output, so it is shown inside it, not added to it.
+    const reasoning = usage?.reasoningTokens
+      ? ` (reasoning ${tokenText(usage.reasoningTokens)})`
+      : "";
+    return `in ${short(usage?.inputTokens)} · out ${short(usage?.outputTokens)}${reasoning} · cache read ${short(usage?.cacheReadTokens)} · write ${short(usage?.cacheWriteTokens)}`;
   }
 
   function updateFooter(): void {
@@ -138,7 +143,7 @@ export function createDisplay(
     screen.setFooter([
       `Last · ${usageLine(lastUsage)}`,
       `Context · ${measured}${window} · ${counted(historySize, "message")}`,
-      `Session · ${counted(requests, "request")} · in ${tokenText(totals.inputTokens)} · out ${tokenText(totals.outputTokens)}${partial ? " · partial" : ""}`,
+      `Session · ${counted(requests, "request")} · in ${tokenText(totals.inputTokens)} · out ${tokenText(totals.outputTokens)}${totals.reasoningTokens ? ` (reasoning ${tokenText(totals.reasoningTokens)})` : ""}${partial ? " · partial" : ""}`,
     ]);
   }
 
@@ -176,7 +181,7 @@ export function createDisplay(
       const model =
         config.provider === "human"
           ? "you are the model"
-          : `${config.provider} · ${config.model}`;
+          : `${config.provider} · ${config.model}${config.reasoningEffort ? ` · reasoning ${config.reasoningEffort}` : ""}`;
       const where = `${model} · ${workspace}`;
       const intro = lesson?.goal ?? tagline;
       if (screen) {

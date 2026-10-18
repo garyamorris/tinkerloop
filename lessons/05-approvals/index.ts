@@ -22,7 +22,7 @@ await lesson(
           "Read sum.js and sum.test.js, then fix the bug in sum.js. Do not change the tests.",
       },
     ];
-    const instructions = `${systemPrompt} Read a file before replacing it. Each write needs the user's approval; if one is denied, do not retry it.`;
+    const instructions = `${systemPrompt} Read a file before replacing it. The user's message is the request, so make changes with write_file rather than describing them. If a write is denied, do not retry it.`;
 
     display.user(messages[0]!.content);
     // The same bounded loop as lesson 4.

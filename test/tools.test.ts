@@ -3,11 +3,12 @@ import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { runCommand } from "../src/command.js";
+import { elide, runCommand } from "../src/command.js";
 import { keyNames } from "../src/config.js";
 import { errorMessage } from "../src/errors.js";
 import {
   bounded,
+  commandResult,
   executeTool,
   MAX_OUTPUT,
   readOnlyTools,
@@ -267,7 +268,81 @@ test("approved commands return stdout, stderr, exit status, and bounded output",
     context,
   );
   assert.ok(large.content.length <= MAX_OUTPUT);
-  assert.match(large.content, /truncated/);
+  assert.match(
+    (JSON.parse(large.content) as { stdout: string }).stdout,
+    /characters omitted/,
+  );
+});
+
+test("long command output keeps its end and its stderr, as valid JSON", async (t) => {
+  const cwd = await workspace(t);
+  // Like a large failing test run: many passing lines, then the failure.
+  const script = `for (let i = 0; i < 3000; i++) console.log('ok ' + i); console.error('AssertionError: expected 9'); console.log('# fail 1'); process.exitCode = 1`;
+  const result = await executeTool(
+    {
+      id: "1",
+      name: "run_command",
+      arguments: { command: `node -e "${script}"` },
+    },
+    { cwd, approve: async () => true },
+  );
+  assert.ok(result.content.length <= MAX_OUTPUT);
+  const output = JSON.parse(result.content) as {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+  };
+  assert.equal(output.exitCode, 1);
+  assert.match(output.stdout, /^ok 0\n/);
+  assert.match(output.stdout, /# fail 1\n$/);
+  assert.match(output.stdout, /characters omitted/);
+  assert.equal(output.stderr, "AssertionError: expected 9\n");
+});
+
+test("a stream larger than the capture limit keeps its start and end in bounded memory", async (t) => {
+  const cwd = await workspace(t);
+  const output = await runCommand(
+    `node -e "process.stdout.write('a' + 'x'.repeat(1499998) + 'z')"`,
+    cwd,
+  );
+  assert.ok(output.stdout.length < 1_000_100);
+  assert.match(output.stdout, /^a/);
+  assert.match(output.stdout, /z$/);
+  assert.match(output.stdout, /\[… 500,000 characters omitted …\]/);
+});
+
+test("command results share the room between streams and count what was left out", () => {
+  const output = {
+    exitCode: 1,
+    signal: null,
+    timedOut: false,
+    stdout: "a".repeat(50_000),
+    stderr: "b".repeat(50_000),
+  };
+  const both = JSON.parse(commandResult(output)) as typeof output;
+  assert.ok(both.stdout.length > 9_000 && both.stderr.length > 9_000);
+  // Characters that JSON escapes still fit, and the result still parses.
+  const quoted = commandResult({ ...output, stdout: '"\\'.repeat(30_000) });
+  assert.ok(quoted.length <= MAX_OUTPUT);
+  JSON.parse(quoted);
+  const text = "x".repeat(1_000) + "y".repeat(1_000);
+  const short = elide(text, 500);
+  assert.ok(short.length <= 500);
+  assert.match(short, /^x+\n\[… [\d,]+ characters omitted …\]\ny+$/);
+  const kept = short.replace(/\n\[.*\]\n/, "").length;
+  assert.match(
+    short,
+    new RegExp(`\\[… ${(2_000 - kept).toLocaleString("en-US")} characters`),
+  );
+  // Shortening again folds the earlier marker into a single accurate count.
+  const shorter = elide(short, 200);
+  const keptAgain = shorter.replace(/\n\[.*\]\n/, "").length;
+  assert.match(
+    shorter,
+    new RegExp(
+      `\\[… ${(2_000 - keptAgain).toLocaleString("en-US")} characters`,
+    ),
+  );
 });
 
 test("commands time out and cancellation terminates a running command", async (t) => {

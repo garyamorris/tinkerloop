@@ -66,6 +66,41 @@ test("context limits are optional, validated, and overridden by flags", () => {
   }
 });
 
+test("reasoning effort is optional, validated, and limited to providers that accept it", () => {
+  assert.equal(readConfig([], env)!.reasoningEffort, undefined);
+  assert.equal(
+    readConfig([], { ...env, TINKERLOOP_REASONING_EFFORT: "High" })!
+      .reasoningEffort,
+    "high",
+  );
+  assert.equal(
+    readConfig(["--reasoning-effort", "low"], {
+      ...env,
+      TINKERLOOP_REASONING_EFFORT: "high",
+    })!.reasoningEffort,
+    "low",
+  );
+  assert.throws(
+    () => readConfig(["--reasoning-effort", "extreme"], env),
+    /must be one of: none, minimal, low, medium, high, xhigh/,
+  );
+  assert.throws(
+    () =>
+      readConfig(["--provider", "anthropic", "--reasoning-effort", "high"], {
+        ...env,
+        ANTHROPIC_API_KEY: "key",
+      }),
+    /openai and compatible providers only/,
+  );
+  // You are the model, so a configured level is simply not used.
+  assert.equal(
+    readConfig(["--provider", "human"], {
+      TINKERLOOP_REASONING_EFFORT: "high",
+    })!.reasoningEffort,
+    undefined,
+  );
+});
+
 test("the human provider needs no key and ignores a configured model ID", () => {
   const config = readConfig(["--provider", "human"], {
     TINKERLOOP_MODEL: "some-real-model",
