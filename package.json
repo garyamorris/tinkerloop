@@ -25,6 +25,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
+    "smoke": "tsx scripts/smoke.ts",
     "lesson:1": "tsx lessons/01-model-call/index.ts",
     "lesson:2": "tsx lessons/02-conversation/index.ts",
     "lesson:3": "tsx lessons/03-one-tool/index.ts",

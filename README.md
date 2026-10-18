@@ -221,6 +221,7 @@ codes, and what each token counter means.
 | [`src/screen.ts`](src/screen.ts) | Optional full-screen view and keyboard input, using native Node APIs |
 | [`lessons/`](lessons/README.md) | Runnable stages with explanations and exercises |
 | [`examples/`](examples/README.md) | Practice projects with deliberate bugs, plus a prompt-injection exercise |
+| [`scripts/smoke.ts`](scripts/smoke.ts) | The opt-in live smoke test over the practice projects |
 
 Next steps: [add a tool or connector](docs/extending.md),
 [troubleshoot setup](docs/troubleshooting.md), or [contribute](CONTRIBUTING.md).
@@ -236,6 +237,21 @@ This typechecks the application, lessons, and tests; runs tests; and builds the
 CLI. Tests use synthetic HTTP responses and temporary workspaces, so they need
 no API keys and spend no model tokens. CI runs the checks on macOS, Linux, and
 Windows. The practice projects' intentionally failing tests are separate.
+
+To check how a real model behaves with the harness, run the opt-in smoke test.
+It makes real API calls, which may cost money, and never runs in CI:
+
+```sh
+npm run smoke -- --provider openai --model YOUR_MODEL_ID --runs 3
+```
+
+It copies each practice project to a temporary folder and runs the CLI's loop
+and system prompt on it. A fixed rule answers approvals: test commands run,
+test files stay unchanged, and anything else is denied and listed. Then it runs
+the tests itself. A run fails if the model never calls a tool, the tests still
+fail, a protected file changed, or the model proposed the injection demo's
+hidden command. `--only <project>` runs one practice project. Other CLI
+options, such as `--reasoning-effort`, work the same.
 
 Tinkerloop keeps conversations in memory. It does not include streaming, saved
 sessions, context compaction, MCP, or background jobs; the
