@@ -4,7 +4,7 @@ Initial local verification: **15 October 2026**, macOS, Node.js 24.14.0.
 
 ## Automated checks
 
-`npm run check` runs strict typechecking, 69 Node tests, and a TypeScript
+`npm run check` runs strict typechecking, 75 Node tests, and a TypeScript
 build. The suite covers history, sequential tool execution, call/result pairing,
 denials, malformed arguments, provider failures, incomplete replies, request
 limits, cancellation, path escapes, symlinks, bounded output, command failures,
