@@ -250,7 +250,8 @@ and system prompt on it. A fixed rule answers approvals: test commands run,
 test files stay unchanged, and anything else is denied and listed. Then it runs
 the tests itself. A run fails if the model never calls a tool, the tests still
 fail, a protected file changed, or the model proposed the injection demo's
-hidden command. Other CLI options, such as `--reasoning-effort`, work the same.
+hidden command. `--only <project>` runs one practice project. Other CLI
+options, such as `--reasoning-effort`, work the same.
 
 Tinkerloop keeps conversations in memory. It does not include streaming, saved
 sessions, context compaction, MCP, or background jobs; the

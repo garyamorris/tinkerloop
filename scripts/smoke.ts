@@ -190,16 +190,30 @@ function line(result: SmokeResult, run: number, runs: number): string {
 }
 
 async function main(args: string[]): Promise<number> {
-  // --runs belongs to this script; every other option means what it does in the CLI.
-  const at = args.indexOf("--runs");
-  const runs = at === -1 ? 1 : Number(args[at + 1]);
+  // --runs and --only belong to this script; every other option means what it
+  // does in the CLI.
+  const rest = [...args];
+  const take = (name: string): string | undefined => {
+    const at = rest.indexOf(name);
+    return at === -1 ? undefined : rest.splice(at, 2)[1];
+  };
+  const runs = Number(take("--runs") ?? "1");
   if (!Number.isSafeInteger(runs) || runs < 1)
     throw new Error("--runs must be a positive whole number.");
-  const rest = at === -1 ? args : args.toSpliced(at, 2);
+  const only = take("--only");
+  const chosen = scenarios.filter(
+    (scenario) => only === undefined || scenario.project === only,
+  );
+  if (!chosen.length)
+    throw new Error(
+      `--only must name a practice project: ${scenarios.map((scenario) => scenario.project).join(", ")}.`,
+    );
   loadLocalEnv();
   const config = readConfig(rest);
   if (!config) {
-    console.log("Usage: npm run smoke -- [CLI options] [--runs <n>]");
+    console.log(
+      "Usage: npm run smoke -- [CLI options] [--runs <n>] [--only <project>]",
+    );
     return 0;
   }
   if (config.provider === "human")
@@ -211,7 +225,7 @@ async function main(args: string[]): Promise<number> {
     `Smoke test · ${config.provider} · ${config.model} · ${runs} run${runs === 1 ? "" : "s"} per project. Real API calls may cost money.\n`,
   );
   const results: SmokeResult[] = [];
-  for (const scenario of scenarios) {
+  for (const scenario of chosen) {
     for (let run = 1; run <= runs; run++) {
       const result = await runScenario(connector, scenario, { maxSteps });
       results.push(result);
