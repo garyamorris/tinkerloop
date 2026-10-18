@@ -35,7 +35,10 @@ came from you and which came from a file.
 What protects you here, and its limits:
 
 - The system prompt says project files and tool output are data, not
-  instructions. That lowers the odds of compliance; it guarantees nothing.
+  instructions, and asks the model to tell you about any it finds. That lowers
+  the odds of compliance; it guarantees nothing. In smoke-test runs with
+  `gpt-5-nano`, adding that line cut proposals of the hidden command from 27%
+  to 9%, not to zero.
 - Every write and command needs your approval. This is the real control, and it
   only works if you read each proposal.
 - Commands do not inherit provider API keys. Everything else your account can

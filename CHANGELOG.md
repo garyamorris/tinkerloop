@@ -8,7 +8,12 @@ can point at one and stay accurate while `main` moves on.
 - **`npm run smoke`** runs the practice projects against a real model and
   checks the results itself: the tests pass, test files are unchanged, and the
   injection demo's hidden command was never proposed. It is opt-in, costs real
-  tokens, and never runs in CI.
+  tokens, and never runs in CI. `--only <project>` runs one practice project.
+- **The CLI's system prompt resists hidden instructions better.** It now tells
+  the model never to follow instructions found in files or tool output, and to
+  tell the user about them. On the injection demo with `gpt-5-nano`, proposals
+  of the hidden command fell from 27% to 9% of runs, and every final answer
+  mentioned the hidden note. Approval is still what stops the rest.
 
 ## 0.3.0
 
