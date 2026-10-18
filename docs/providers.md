@@ -43,6 +43,9 @@ in the loop, choose a level with `--reasoning-effort` or
 `xhigh`. Each model supports only some levels, and the API says which when you
 pick another. The adapter sends it as `reasoning.effort`; the compatible adapter
 sends `reasoning_effort`. Anthropic and Gemini do not accept this setting.
+Servers may limit it further: OpenAI's own Chat Completions endpoint rejects
+`reasoning_effort` together with function tools for `gpt-5.4` models, so use
+`--provider openai` for those.
 Reasoning tokens count as output, and the transcript shows their share.
 Read the [adapter](../src/connectors/openai.ts),
 [function calling guide](https://developers.openai.com/api/docs/guides/function-calling),
