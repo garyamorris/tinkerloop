@@ -19,7 +19,9 @@ A command result is JSON with the exit code, stdout, stderr, and whether it
 timed out. A nonzero exit code marks the result as an error. That is the
 feedback that makes an agent useful: it can claim "the tests pass" only if a
 tool result shows it. Read [`command.ts`](../../src/command.ts) for the
-30-second timeout, output limits, and how the process tree is stopped.
+30-second timeout, output limits, and how the process tree is stopped. Long
+output keeps its start and its end, because a test run's failures and summary
+come last; a model that sees only the first passing tests cannot fix anything.
 
 Approved commands run with your user account's permissions. The workspace
 folder is where a command starts, not a boundary: a command can read or change

@@ -30,6 +30,22 @@ export function parseArguments(value: unknown): unknown {
   }
 }
 
+// All four APIs wrap failures as {"error": {"message": ...}}, with a code
+// (OpenAI), status (Gemini), or type (Anthropic). Show those, not raw JSON.
+// Anything else, such as an HTML error page, is shown as received.
+function errorDetail(body: string): string {
+  try {
+    const error = object(object(JSON.parse(body)).error);
+    const message = string(error.message);
+    const label = [error.code, error.status, error.type].find(
+      (value) => typeof value === "string" && value,
+    );
+    return label ? `${label}: ${message}` : message;
+  } catch {
+    return body;
+  }
+}
+
 export async function postJson(
   url: string,
   headers: Record<string, string>,
@@ -47,7 +63,7 @@ export async function postJson(
     redirect: "error", // Do not forward a credential to a redirected destination.
   });
   if (!response.ok) {
-    let detail = await response.text();
+    let detail = errorDetail(await response.text());
     for (const secret of Object.values(headers)) {
       if (secret.length > 8)
         detail = detail.replaceAll(

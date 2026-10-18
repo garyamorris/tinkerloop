@@ -20,6 +20,13 @@ same call ID, and the model reads it on the next request. The system prompt
 asks the model not to retry a denied write, but that is a request, not a
 guarantee. The approval check in your own code is what actually stops the write.
 
+Wording matters here too. Told that writes "need the user's approval", some
+models describe the change and ask for permission in chat, so the tool is never
+called and nothing reaches your approval check. The prompt says instead that
+the user's message is the request, so the model makes changes with
+`write_file`. The tool description and your approval check still say, and
+enforce, that every write is approved first.
+
 `write_file` replaces a whole file. That keeps this harness small, but a model
 must send the entire file to change one character, which costs output tokens.
 Real coding agents usually offer an edit tool that replaces one exact, unique

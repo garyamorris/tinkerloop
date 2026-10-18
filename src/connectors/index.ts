@@ -20,7 +20,12 @@ export function createConnector(
         );
       return createHumanConnector(human);
     case "openai":
-      return createOpenAIConnector(config.apiKey, config.model, fetchImpl);
+      return createOpenAIConnector(
+        config.apiKey,
+        config.model,
+        fetchImpl,
+        config.reasoningEffort,
+      );
     case "anthropic":
       return createAnthropicConnector(config.apiKey, config.model, fetchImpl);
     case "gemini":
@@ -31,6 +36,7 @@ export function createConnector(
         config.apiKey,
         config.model,
         fetchImpl,
+        config.reasoningEffort,
       );
   }
 }

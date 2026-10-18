@@ -107,6 +107,21 @@ test("clearing context retains session usage and unknown counters stay unknown",
   assert.match(text, /0 history messages/);
 });
 
+test("reasoning shows as a share of output only when a model reported some", () => {
+  const terminal = screen(false);
+  terminal.display.request(1, 10);
+  terminal.display.reply(reply);
+  terminal.display.request(2, 10);
+  terminal.display.reply({
+    ...reply,
+    usage: { inputTokens: 300, outputTokens: 2779, reasoningTokens: 1792 },
+  });
+  const lines = terminal.stderr().split("\n");
+  const replies = lines.filter((line) => line.includes("↳ reply"));
+  assert.doesNotMatch(replies[0]!, /reasoning/);
+  assert.match(replies[1]!, /out 2,779 \(reasoning 1,792\) · cache read/);
+});
+
 test("narrow paragraphs wrap and code blocks keep their exact contents", () => {
   const rendered = renderMarkdown(
     "This is a deliberately long paragraph that should wrap across several lines.\n\n```js\n    nested();\n```",

@@ -39,8 +39,11 @@ accessible. This does not make an approved command safe automatically.
 Each command has a 30-second timeout and receives no interactive stdin. Timeout
 or Ctrl+C triggers process-tree termination. Unix uses a process group; Windows
 uses `taskkill /T /F`. Deliberately detached background processes can escape that
-mechanism; background jobs are unsupported. Output capture is bounded and
-truncation is marked. A command error includes exit status and captured output.
+mechanism; background jobs are unsupported. Long output keeps its start and
+its end, because errors and test summaries usually come last; a marker in the
+middle says how many characters were left out. stdout and stderr share the
+20,000-character result, so a long stdout cannot hide stderr. A command error
+includes exit status and captured output.
 
 ## Human input
 

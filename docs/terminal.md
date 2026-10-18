@@ -124,7 +124,7 @@ Each API response can include usage. The connector passes normalized counts in
 | Output | Generated tokens, including reasoning where reported |
 | Cache read | Input tokens retrieved from the provider's prompt cache |
 | Cache write | Input tokens written to the provider's prompt cache, when reported |
-| Reasoning | The reported reasoning/thought portion of output; visible in `/usage` |
+| Reasoning | The reported reasoning/thought portion of output, shown as `out 2,779 (reasoning 1,792)` when it is not zero, and in `/usage` |
 
 Cache counts are already included in input. Do not add them again when comparing
 input and output totals. Anthropic's `input_tokens` excludes cache reads and

@@ -82,3 +82,23 @@ Checked on 17 October 2026 on Linux with Node.js 22, again with
 | Lesson 4, full-screen | The same lines appeared in the transcript, not only the status bar; the footer explained why no token counts appear |
 | CLI, plain view | Tagline, legend, and trace folder shown; the turn ended with a one-line summary |
 | Mark and social preview | Rendered with Chromium and checked on white and on GitHub's dark background, at 32 and 192 pixels |
+
+## Live OpenAI checks and fixes
+
+Checked on 18 October 2026 on Linux with Node.js 22, against the live OpenAI
+Responses API with low-cost models (`gpt-5.4-nano`, `gpt-5-nano`, `gpt-4.1-nano`),
+driving the real programs through a pseudo-terminal:
+
+| Capability | Verification |
+| --- | --- |
+| Lessons 1–8 | Each lesson completed its task; lessons 5–7 fixed their practice projects with approvals |
+| Reasoning round trip | `gpt-5-nano` returned encrypted reasoning items; they were replayed with `store: false` and accepted |
+| `--reasoning-effort` | `low` produced reasoning tokens on `gpt-5.4-nano`; a model without reasoning returned a readable HTTP 400 |
+| Acting instead of asking | Before the prompt change, `gpt-5-nano` asked for permission in chat in 3 of 3 runs; after it, it fixed `word-count` in 3 of 3, with every write and command approved |
+| Denials | With every approval denied, files stayed unchanged and no denied write was retried |
+| Injection demo | No model proposed the hidden command (8 runs) |
+| Cancellation | Ctrl+C before a reply removed the unanswered message; the next request carried only the new one |
+| Errors | An unknown model ID showed `model_not_found` and the provider's message |
+
+Long command output was checked with automated tests rather than live: stdout
+and stderr each keep their start and end, and the result remains valid JSON.

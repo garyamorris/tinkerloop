@@ -8,7 +8,7 @@
   "author": "Gary Morris",
   "repository": "github:garyamorris/tinkerloop",
   "engines": {
-    "node": ">=24"
+    "node": ">=22"
   },
   "bin": {
     "tinkerloop": "dist/cli.js"

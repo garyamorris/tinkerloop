@@ -9,7 +9,7 @@ import {
   stat,
 } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
-import { runCommand } from "./command.js";
+import { elide, runCommand, type CommandOutput } from "./command.js";
 import type { ToolCall, ToolDefinition, ToolResult } from "./types.js";
 
 export const MAX_OUTPUT = 20_000;
@@ -83,6 +83,34 @@ export function bounded(text: string): string {
   return text.length > MAX_OUTPUT
     ? text.slice(0, MAX_OUTPUT - notice.length) + notice
     : text;
+}
+
+// Fit a command's output into one result that is still valid JSON. Each stream
+// gets half the room, and a short stream gives its unused share to the other,
+// so a long stdout cannot push the error on stderr out of view.
+export function commandResult(output: CommandOutput): string {
+  let room = MAX_OUTPUT - 200; // Leave space for the other JSON fields.
+  for (;;) {
+    const half = Math.floor(room / 2);
+    const text = JSON.stringify(
+      {
+        ...output,
+        stdout: elide(
+          output.stdout,
+          Math.max(half, room - output.stderr.length),
+        ),
+        stderr: elide(
+          output.stderr,
+          Math.max(half, room - output.stdout.length),
+        ),
+      },
+      null,
+      2,
+    );
+    if (text.length <= MAX_OUTPUT || room === 0) return text;
+    // Escaping makes JSON longer than its strings. Shrink by the excess and retry.
+    room = Math.max(0, room - (text.length - MAX_OUTPUT));
+  }
 }
 
 function blockedName(name: string): boolean {
@@ -183,7 +211,7 @@ export async function executeTool(
         context.signal,
         context.commandTimeoutMs,
       );
-      result.content = bounded(JSON.stringify(output, null, 2));
+      result.content = commandResult(output);
       result.isError = output.exitCode !== 0 || output.timedOut;
     } else {
       const path = await workspacePath(root, args.path!);
