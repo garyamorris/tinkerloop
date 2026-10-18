@@ -1,6 +1,6 @@
 {
   "name": "tinkerloop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Learn how coding agents work by building the loop.",
   "private": true,
   "type": "module",

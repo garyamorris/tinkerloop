@@ -224,6 +224,7 @@ codes, and what each token counter means.
 
 Next steps: [add a tool or connector](docs/extending.md),
 [troubleshoot setup](docs/troubleshooting.md), or [contribute](CONTRIBUTING.md).
+The [changelog](CHANGELOG.md) lists what changed in each version.
 
 ## Check your changes
 

@@ -1,80 +1,103 @@
 # An annotated tool round trip
 
-This is an illustrative, shortened transcript. Exact wording and tool order vary
-by model. The application calls a real provider; this is not an offline mode.
+This is one turn of the complete CLI, shortened. Exact wording, tool order, and
+call IDs vary by model and provider, and token counts are left out. To produce
+one like it yourself, run the practice task with `--provider human` and play the
+model.
+
+Lines starting with `+` are annotations, not terminal output. Each shows what
+joins the history at that moment. Count them, and you will see why every `↻`
+line sends two more messages than the one before.
 
 ## A request becomes an action
 
 ```text
-You: Read the code, fix sum.js, and run npm test.
+you
+Read the code, fix sum.js, and run npm test.
+  + user: "Read the code, fix sum.js, and run npm test."
 
-Model request 1:
-  tool: read_file
-  call ID: read_1
-  arguments: { "path": "sum.js" }
-
-Local result:
-  call ID: read_1
-  content: export function sum(numbers) { ... index < numbers.length - 1 ... }
+↻ request 1/10 · 1 message sent
+↳ reply · 1 tool call
+  + assistant: read_file {"path": "sum.js"}             call ID read_1
+→ read_file sum.js
+✓ read_file sum.js · 2 ms
+  + tool result read_1: "export function sum(numbers) { … index < numbers.length - 1 … }"
 ```
 
-The model returned JSON describing a request. `executeTool` validated it and
-read a file locally. The harness appends both the assistant's request and the
-matching result to the message history. A test-file read may follow.
+The model returned JSON describing a request; nothing had happened yet.
+`executeTool` validated it and read the file locally. The request and its result
+both join the history, linked by the call ID, before the next `↻`.
 
 ## A file change needs approval
 
 ```text
-Model request 2:
-  tool: write_file
-  call ID: write_1
-  arguments:
-    path: sum.js
-    content: <the complete corrected source>
+↻ request 2/10 · 3 messages sent
+↳ reply · 1 tool call
+  + assistant: write_file {"path": "sum.js", "content": "<the complete fixed file>"}   call ID write_1
+→ write_file sum.js
 
-Terminal:
-  Create or replace /your/practice/sum.js with these complete contents:
-  --- begin file ---
-  ... index < numbers.length ...
-  --- end file ---
+Approval required
+Create or replace /your/practice/sum.js with these complete contents:
 
-  Allow this action? [y/N] y
+--- begin file ---
+… index < numbers.length …
+--- end file ---
 
-Local result:
-  call ID: write_1
-  content: Wrote ... bytes to sum.js.
+Allow this action? [y/N] y
+✓ write_file sum.js · 4210 ms
+Wrote 112 bytes to sum.js.
+  + tool result write_1: "Wrote 112 bytes to sum.js."
 ```
 
-The file changes only after approval. `write_file` accepts the entire new file,
-which avoids introducing a patch parser in the first version.
+The file changes only after you type `y`, and the duration includes the time you
+spent reading the proposal. `write_file` takes the entire new file, which keeps
+this harness free of a patch parser; [make it yours](extending.md) suggests an
+edit tool as an exercise.
 
 ## A command returns evidence
 
 ```text
-Model request 3:
-  tool: run_command
-  call ID: test_1
-  arguments: { "command": "npm test" }
+↻ request 3/10 · 5 messages sent
+↳ reply · 1 tool call
+  + assistant: run_command {"command": "npm test"}       call ID test_1
+→ run_command npm test
 
-Terminal:
-  Run in /your/practice:
-  npm test
-  Allow this action? [y/N] y
+Approval required
+Run in /your/practice:
 
-Local result:
-  call ID: test_1
-  content: { "exitCode": 0, "timedOut": false, "stdout": "... pass 3 ...", ... }
+npm test
 
-Model request 4:
-  answer: Fixed the loop to include the last number. All three tests pass.
+Allow this action? [y/N] y
+✓ run_command npm test · 5380 ms
+exit 0
+> test
+> node --test sum.test.js
+… more output sent to the model
+  + tool result test_1: {"exitCode": 0, "timedOut": false, "stdout": "… pass 3 …", …}
+
+↻ request 4/10 · 7 messages sent
+↳ reply · answer
+  + assistant: "Fixed the loop to include the last number. All three tests pass."
+
+model
+Fixed the loop to include the last number. All three tests pass.
 ```
 
-The final answer is grounded in the tool result. A nonzero exit status is an
-error result, not a successful test run.
+The final answer is grounded in a tool result: the model can say the tests pass
+because a result shows exit code 0. A nonzero exit code is an error result,
+marked `✗`, not a successful test run. The terminal shows a short preview of the
+output; the model receives the whole bounded result.
 
 ## Denial is a result too
 
-If you enter `n`, the executor returns an error associated with the same call
-ID. No write or command occurs. The next API request includes that denial so
-the model can report what remains unfinished. The harness does not silently
-approve a substitute command.
+If you type `n` instead, nothing is written or run, and the same call ID still
+gets a result:
+
+```text
+✗ write_file sum.js · 3104 ms
+User denied this file change. Do not retry it without a new user request.
+  + tool result write_1 (error): "User denied this file change. Do not retry it without a new user request."
+```
+
+The next request includes that denial, so the model can report what remains
+unfinished. The harness never approves a substitute on your behalf.

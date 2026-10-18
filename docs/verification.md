@@ -4,7 +4,7 @@ Initial local verification: **15 October 2026**, macOS, Node.js 24.14.0.
 
 ## Automated checks
 
-`npm run check` runs strict typechecking, 68 Node tests, and a TypeScript
+`npm run check` runs strict typechecking, 69 Node tests, and a TypeScript
 build. The suite covers history, sequential tool execution, call/result pairing,
 denials, malformed arguments, provider failures, incomplete replies, request
 limits, cancellation, path escapes, symlinks, bounded output, command failures,
@@ -13,8 +13,9 @@ accounting, context percentages, partial reporting, terminal control handling,
 clean redirected output, guided setup, hidden session keys, bracketed paste,
 default-deny full-screen approvals, resize, terminal mode restoration, the
 transcript left in scrollback, per-turn Ctrl+C cancellation, provider-key
-removal from command environments, trace files, and the human provider's reply
-parsing and full tool round trip.
+removal from command environments, trace files, the human provider's reply
+parsing and full tool round trip, and the transcript's request, reply, tool,
+and result lines.
 
 All four connectors have synthetic HTTP round-trip fixtures under
 [`test/fixtures`](../test/fixtures/). Tests check preservation of opaque reasoning
@@ -69,3 +70,15 @@ These changes were not checked against live provider APIs, because no
 credentials were available: the Anthropic `cache_control` request field, the
 16,000-token output cap, and the five-minute request timeout. Fixtures confirm
 the request bodies; confirm behavior with a real key before relying on it.
+
+## Terminal narration and identity
+
+Checked on 17 October 2026 on Linux with Node.js 22, again with
+`--provider human` through a pseudo-terminal:
+
+| Capability | Verification |
+| --- | --- |
+| Lesson 3, plain view | Banner showed the lesson number, title, and goal; `↻`, `↳`, `→`, and `✓` lines appeared once per step; the reply was labelled `model` |
+| Lesson 4, full-screen | The same lines appeared in the transcript, not only the status bar; the footer explained why no token counts appear |
+| CLI, plain view | Tagline, legend, and trace folder shown; the turn ended with a one-line summary |
+| Mark and social preview | Rendered with Chromium and checked on white and on GitHub's dark background, at 32 and 192 pixels |
