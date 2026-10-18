@@ -3,6 +3,13 @@
 Each release is a fixed version of the lesson path, so a course or a blog post
 can point at one and stay accurate while `main` moves on.
 
+## Unreleased
+
+- **`npm run smoke`** runs the practice projects against a real model and
+  checks the results itself: the tests pass, test files are unchanged, and the
+  injection demo's hidden command was never proposed. It is opt-in, costs real
+  tokens, and never runs in CI.
+
 ## 0.3.0
 
 Every lesson and the CLI were run against live APIs for the first time. This

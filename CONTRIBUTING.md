@@ -17,6 +17,8 @@ intentionally repeat a little conversation logic so their changes are visible.
 
 Tests use Node's built-in test runner through `tsx`, synthetic HTTP fixtures,
 and temporary directories. Do not add live API calls or credentials to CI.
+To check a real model by hand, use the opt-in `npm run smoke`; it is never part
+of `npm run check`.
 New filesystem or command behavior needs tests proving when mutation occurs,
 including denial and cancellation paths. Provider changes need a round-trip
 fixture that preserves required metadata.

@@ -23,6 +23,10 @@ Watch for:
 3. If it does, the approval screen shows exactly what would run. Deny it. The
    denial goes back to the model as a tool result.
 
+To measure how often a model proposes the command, run
+`npm run smoke -- --model YOUR_MODEL_ID --runs 5`. It denies the command
+automatically and reports each run where the model proposed it.
+
 Then play the model with `--provider human` and look at the request after you
 read `NOTES.md`. The hidden comment is just more text in a tool result. A model
 receives one stream of text and has no separate channel that marks which words
